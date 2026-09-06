@@ -462,9 +462,123 @@ body {
     color: var(--text-light);
 }
 
+/* ===== INSPIRATION CHIPS ===== */
+.inspiration-section {
+    background: var(--cream);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+}
+
+.inspiration-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inspiration-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chip-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-body);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chip-btn:hover {
+    border-color: var(--gold);
+    color: var(--navy);
+    background: var(--ivory);
+    transform: translateY(-1px);
+}
+
+/* ===== TEXTAREA TOOLBAR & DICTATION ===== */
+.textarea-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -16px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dictate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dictate-btn:hover {
+    border-color: var(--gold);
+    background: var(--ivory);
+    color: var(--navy);
+}
+
+.dictate-btn.listening {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #b91c1c;
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.draft-status {
+    font-size: 0.78rem;
+    color: #15803d;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.draft-status.visible {
+    opacity: 1;
+}
+
+.word-count-badge {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 textarea.form-input {
     min-height: 160px;
     resize: vertical;
+    margin-bottom: 20px;
 }
 
 .form-footer {
@@ -771,6 +885,56 @@ textarea.form-input {
 .success-header p {
     color: var(--text-muted);
     font-size: 1rem;
+}
+
+/* Reading controls */
+.reading-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 750px;
+    margin: 0 auto 16px;
+    padding: 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.reading-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.font-size-adjuster {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fs-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-right: 2px;
+}
+
+.font-size-adjuster button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: var(--font-serif);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-body);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.font-size-adjuster button:hover {
+    border-color: var(--gold);
+    color: var(--navy);
 }
 
 /* Book page container */

@@ -90,6 +90,17 @@
             <p class="section-subtitle" style="color: rgba(255,255,255,0.5);">Just fill in the details below. We'll take care of the storytelling.</p>
 
             <div class="form-card">
+                <!-- Inspiration Chips -->
+                <div class="inspiration-section">
+                    <span class="inspiration-label">Need inspiration? Click an example to start:</span>
+                    <div class="inspiration-chips">
+                        <button type="button" class="chip-btn" data-example="holiday">🏖️ 1985 Cornwall Roadtrip</button>
+                        <button type="button" class="chip-btn" data-example="wedding">💍 1978 Wedding Day</button>
+                        <button type="button" class="chip-btn" data-example="firstjob">💼 First Job in London</button>
+                        <button type="button" class="chip-btn" id="clearFormBtn" style="color: #94a3b8; border-style: dashed;" title="Clear all fields">↺ Clear</button>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="memoryTitle">What's this memory about? <span class="hint">— Give it a title</span></label>
                     <input type="text" id="memoryTitle" class="form-input" placeholder="e.g. The Summer We Drove to Cornwall, Dad's 70th Birthday, My First Day at Work...">
@@ -114,6 +125,17 @@
                 <div class="form-group">
                     <label for="memoryStory">Tell us what happened <span class="hint">— In your own words, however messy</span></label>
                     <textarea id="memoryStory" class="form-input" placeholder="Just write whatever you remember... the sights, the smells, the funny moments, the feelings. Don't worry about getting it perfect — that's our job."></textarea>
+                    
+                    <!-- Textarea Toolbar -->
+                    <div class="textarea-toolbar">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button type="button" id="dictateBtn" class="dictate-btn" title="Speak into your microphone">
+                                <span class="mic-icon">🎙️</span> Dictate Story
+                            </button>
+                            <span id="draftStatus" class="draft-status">✓ Draft saved</span>
+                        </div>
+                        <span id="wordCountBadge" class="word-count-badge">0 words</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -268,6 +290,174 @@
     <script>
         // ===== STRIPE SETUP =====
         const stripe = Stripe('pk_test_51UCdsbAoBDUkVEa2k524JagZvfaxQNIuuDW6fOz4GrYBJRC19nNbg7faSAHwNRePJvbWv0hfAsqsKy79NdVpYRiD00xFRafq6K');
+
+        // ===== EXAMPLE PRESETS =====
+        const examples = {
+            holiday: {
+                title: "The Summer We Drove to Cornwall",
+                people: "Mum, Dad, my sister Claire, and our old golden retriever Barnaby",
+                date: "August 1985",
+                location: "Perranporth, Cornwall",
+                story: "We packed the blue Ford Cortina until the boot barely shut. Dad refused to use the motorway, insisting the scenic route was better. Halfway there the radiator boiled over near Exeter. We sat on the grass verge eating soggy cheese and pickle sandwiches wrapped in tinfoil while steam hissed into the summer air. When we finally saw the sea, we all cheered so loudly Barnaby started barking. That cottage smelled of salt and damp wool, but it was absolute heaven."
+            },
+            wedding: {
+                title: "The Day We Said I Do",
+                people: "Margaret, our parents, Uncle Arthur as best man",
+                date: "June 17, 1978",
+                location: "St. Mary's Church, Richmond",
+                story: "It poured with rain the entire morning. I remember standing in the church porch feeling terrified my suit would get drenched. Then the doors opened and Margaret walked in, holding a bouquet of yellow roses her grandmother had picked. The church was freezing cold, but the moment she took my hand, neither of us noticed. The reception was in the village hall with a three-tier fruitcake Margaret's mum had baked months in advance. We danced to 'Unchained Melody' on an old cassette deck."
+            },
+            firstjob: {
+                title: "My First Day as a Junior Clerk",
+                people: "Mr. Henderson the office manager, Miss Higgins the senior typist",
+                date: "September 1972",
+                location: "Bishopsgate, City of London",
+                story: "I wore my very first proper suit, bought from Burton's with money saved doing paper rounds. The collar was terribly stiff and chafed my neck. Mr. Henderson had half-moon glasses and didn't smile once. My job was filing ledger cards and running down to the tea shop on the corner for ham rolls. The smell of carbon paper, tea leaves, and pipe smoke was everywhere. At five o'clock, I took the Central Line home feeling like the most important man in England."
+            }
+        };
+
+        document.querySelectorAll('.chip-btn[data-example]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ex = examples[btn.dataset.example];
+                if (!ex) return;
+                document.getElementById('memoryTitle').value = ex.title;
+                document.getElementById('memoryPeople').value = ex.people;
+                document.getElementById('memoryDate').value = ex.date;
+                document.getElementById('memoryLocation').value = ex.location;
+                document.getElementById('memoryStory').value = ex.story;
+                updateWordCount();
+                saveDraft();
+                document.getElementById('memoryStory').focus();
+            });
+        });
+
+        document.getElementById('clearFormBtn').addEventListener('click', () => {
+            document.getElementById('memoryTitle').value = '';
+            document.getElementById('memoryPeople').value = '';
+            document.getElementById('memoryDate').value = '';
+            document.getElementById('memoryLocation').value = '';
+            document.getElementById('memoryStory').value = '';
+            document.getElementById('memoryEmail').value = '';
+            localStorage.removeItem('memoir_draft');
+            updateWordCount();
+            const status = document.getElementById('draftStatus');
+            status.textContent = 'Cleared';
+            status.classList.add('visible');
+            setTimeout(() => status.classList.remove('visible'), 1500);
+        });
+
+        // ===== LIVE WORD COUNT & DRAFT AUTO-SAVE =====
+        const storyInput = document.getElementById('memoryStory');
+        const wordCountBadge = document.getElementById('wordCountBadge');
+        const draftStatus = document.getElementById('draftStatus');
+        let saveTimeout = null;
+
+        function updateWordCount() {
+            const text = storyInput.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            wordCountBadge.textContent = `${words} word${words === 1 ? '' : 's'}`;
+        }
+
+        function saveDraft() {
+            const draft = {
+                title: document.getElementById('memoryTitle').value,
+                people: document.getElementById('memoryPeople').value,
+                date: document.getElementById('memoryDate').value,
+                location: document.getElementById('memoryLocation').value,
+                story: storyInput.value,
+                email: document.getElementById('memoryEmail').value,
+            };
+            localStorage.setItem('memoir_draft', JSON.stringify(draft));
+            draftStatus.textContent = '✓ Draft saved';
+            draftStatus.classList.add('visible');
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => draftStatus.classList.remove('visible'), 2000);
+        }
+
+        // Restore draft on load
+        try {
+            const saved = localStorage.getItem('memoir_draft');
+            if (saved) {
+                const d = JSON.parse(saved);
+                if (d.story || d.title) {
+                    if (d.title) document.getElementById('memoryTitle').value = d.title;
+                    if (d.people) document.getElementById('memoryPeople').value = d.people;
+                    if (d.date) document.getElementById('memoryDate').value = d.date;
+                    if (d.location) document.getElementById('memoryLocation').value = d.location;
+                    if (d.story) document.getElementById('memoryStory').value = d.story;
+                    if (d.email) document.getElementById('memoryEmail').value = d.email;
+                    updateWordCount();
+                }
+            }
+        } catch(e) {}
+
+        // Listen for input changes
+        ['memoryTitle', 'memoryPeople', 'memoryDate', 'memoryLocation', 'memoryStory', 'memoryEmail'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    if (id === 'memoryStory') updateWordCount();
+                    saveDraft();
+                });
+            }
+        });
+
+        // ===== SPEECH RECOGNITION (DICTATION) =====
+        const dictateBtn = document.getElementById('dictateBtn');
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRec) {
+            const recognition = new SpeechRec();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-GB';
+            let isRecording = false;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                dictateBtn.classList.add('listening');
+                dictateBtn.innerHTML = '<span class="mic-icon">🔴</span> Listening… (click to stop)';
+            };
+
+            recognition.onresult = (event) => {
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        final += event.results[i][0].transcript;
+                    }
+                }
+                if (final) {
+                    const current = storyInput.value;
+                    const space = current && !current.endsWith(' ') ? ' ' : '';
+                    storyInput.value = current + space + final.trim();
+                    updateWordCount();
+                    saveDraft();
+                }
+            };
+
+            recognition.onerror = (e) => {
+                console.warn('Speech recognition:', e.error);
+                isRecording = false;
+                dictateBtn.classList.remove('listening');
+                dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                dictateBtn.classList.remove('listening');
+                dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+            };
+
+            dictateBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        } else {
+            dictateBtn.style.display = 'none';
+        }
 
         // ===== CHECKOUT =====
         const checkoutBtn = document.getElementById('checkoutBtn');

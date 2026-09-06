@@ -113,6 +113,17 @@
                     </div>
                 </div>
 
+                <!-- Reading Controls -->
+                <div class="reading-controls">
+                    <div class="reading-meta" id="readingMeta">📖 ~2 min read</div>
+                    <div class="font-size-adjuster">
+                        <span class="fs-label">Text size:</span>
+                        <button type="button" id="fsDecrease" title="Smaller text">A−</button>
+                        <button type="button" id="fsReset" title="Default text size">A</button>
+                        <button type="button" id="fsIncrease" title="Larger text">A+</button>
+                    </div>
+                </div>
+
                 <!-- The Book Page -->
                 <div class="book-page theme-classic" id="bookPage">
                     <div class="chapter-header">
@@ -223,10 +234,35 @@
                 storyBody.innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
             }
 
+            // Word count and estimated reading time
+            const words = data.story ? data.story.trim().split(/\s+/).length : 0;
+            const readingMins = Math.max(1, Math.ceil(words / 200));
+            document.getElementById('readingMeta').textContent = `📖 ~${readingMins} min read · ${words} words`;
+
             // Show the book
             loader.style.display = 'none';
             bookContainer.style.display = 'block';
         }
+
+        // ===== FONT SIZE ADJUSTMENTS =====
+        let currentFontSize = 1.1;
+        document.getElementById('fsDecrease').addEventListener('click', () => {
+            currentFontSize = Math.max(0.9, +(currentFontSize - 0.1).toFixed(1));
+            document.getElementById('storyBody').style.fontSize = `${currentFontSize}rem`;
+            showToast(`Text size: ${Math.round((currentFontSize / 1.1) * 100)}%`);
+        });
+
+        document.getElementById('fsReset').addEventListener('click', () => {
+            currentFontSize = 1.1;
+            document.getElementById('storyBody').style.fontSize = '';
+            showToast('Text size reset');
+        });
+
+        document.getElementById('fsIncrease').addEventListener('click', () => {
+            currentFontSize = Math.min(1.6, +(currentFontSize + 0.1).toFixed(1));
+            document.getElementById('storyBody').style.fontSize = `${currentFontSize}rem`;
+            showToast(`Text size: ${Math.round((currentFontSize / 1.1) * 100)}%`);
+        });
 
         // ===== PDF DOWNLOAD =====
         document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
