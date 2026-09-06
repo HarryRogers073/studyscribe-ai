@@ -40,8 +40,8 @@ app.post('/create-checkout-session', async (req, res) => {
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
-            cancel_url: `${req.headers.origin}/`,
+            success_url: `https://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
+            cancel_url: `https://${req.get('host')}/`,
         });
 
         res.json({ id: session.id });
