@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Groq = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 
 const app = express();
@@ -10,8 +10,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Initialize Groq
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // In-memory store for pending generations (in production, use a database)
 const pendingJobs = new Map();
@@ -62,7 +62,8 @@ app.post('/generate-guide', async (req, res) => {
             return res.status(400).json({ error: 'Job not found or already processed' });
         }
 
-        // Call Groq API
+        // Call Gemini API
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const prompt = `You are StudyScribe AI, an expert tutor. Take the following messy lecture notes and transform them into a beautifully structured, premium study guide. Include:
 1. Executive Summary
 2. Key Concepts (Bullet points)
@@ -71,20 +72,17 @@ app.post('/generate-guide', async (req, res) => {
 Here are the notes:
 ${notes}`;
 
-        const completion = await groq.chat.completions.create({
-            messages: [{ role: 'user', content: prompt }],
-            model: 'llama3-70b-8192',
-        });
-        
-        const text = completion.choices[0]?.message?.content || "";
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
 
         // Clear the job from memory
         pendingJobs.delete(jobId);
 
         res.json({ guide: text });
     } catch (error) {
-        console.error('Groq error:', error);
-        res.status(500).json({ error: `Groq Error: ${error.message}` });
+        console.error('Gemini error:', error);
+        res.status(500).json({ error: `Gemini Error: ${error.message}` });
     }
 });
 
