@@ -38,6 +38,7 @@ app.post('/create-checkout-session', async (req, res) => {
                 quantity: 1,
             }],
             mode: 'payment',
+            managed_payments: { enabled: false },
             success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
             cancel_url: `${origin}/`,
         });
