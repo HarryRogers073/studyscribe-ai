@@ -8,9 +8,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <!-- marked.js for Markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -52,19 +54,86 @@
 
             <!-- Book Page (hidden until story is ready) -->
             <div id="bookContainer" style="display: none;">
-                <div class="book-page" id="bookPage">
+
+                <!-- ===== THEME PICKER ===== -->
+                <div class="theme-picker" id="themePicker">
+                    <div class="theme-picker-header">
+                        <h3>Choose Your Style</h3>
+                        <p>Pick a look that suits your story</p>
+                    </div>
+                    <div class="theme-options">
+                        <button class="theme-option active" data-theme="classic" title="Classic">
+                            <div class="theme-preview theme-preview-classic">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Classic</span>
+                        </button>
+                        <button class="theme-option" data-theme="antique" title="Antique">
+                            <div class="theme-preview theme-preview-antique">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Antique</span>
+                        </button>
+                        <button class="theme-option" data-theme="rustic" title="Rustic">
+                            <div class="theme-preview theme-preview-rustic">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Rustic</span>
+                        </button>
+                        <button class="theme-option" data-theme="modern" title="Modern Clean">
+                            <div class="theme-preview theme-preview-modern">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Modern</span>
+                        </button>
+                        <button class="theme-option" data-theme="midnight" title="Midnight">
+                            <div class="theme-preview theme-preview-midnight">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Midnight</span>
+                        </button>
+                        <button class="theme-option" data-theme="literary" title="Literary">
+                            <div class="theme-preview theme-preview-literary">
+                                <div class="tp-line"></div>
+                                <div class="tp-line short"></div>
+                                <div class="tp-line"></div>
+                            </div>
+                            <span class="theme-name">Literary</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- The Book Page -->
+                <div class="book-page theme-classic" id="bookPage">
                     <div class="chapter-header">
                         <div class="chapter-label">A MemoirMagic Chapter</div>
                         <h2 class="chapter-title" id="chapterTitle">Your Story</h2>
                         <div class="chapter-meta" id="chapterMeta"></div>
                     </div>
                     <div class="story-body" id="storyBody"></div>
+                    <div class="chapter-footer">
+                        <div class="chapter-ornament">✦</div>
+                        <div class="chapter-footer-text">Written with MemoirMagic AI</div>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="action-bar">
+                    <button class="btn-primary" id="downloadPdfBtn">
+                        <span class="icon">📥</span> Download PDF
+                    </button>
                     <button class="btn-secondary" id="printBtn">
-                        <span class="icon">🖨️</span> Print Story
+                        <span class="icon">🖨️</span> Print
                     </button>
                     <button class="btn-secondary" id="copyBtn">
                         <span class="icon">📋</span> Copy Text
@@ -104,15 +173,37 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
+        // ===== THEME SWITCHING =====
+        const bookPage = document.getElementById('bookPage');
+        const themeButtons = document.querySelectorAll('.theme-option');
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+
+                // Update active state
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Remove all theme classes, add new one
+                bookPage.className = 'book-page theme-' + theme;
+
+                showToast(`"${btn.querySelector('.theme-name').textContent}" theme applied`);
+            });
+        });
+
         // ===== RENDER STORY =====
+        let storyData = null;
+
         function renderStory(data) {
+            storyData = data;
             const loader = document.getElementById('loader');
             const bookContainer = document.getElementById('bookContainer');
             const successHeader = document.getElementById('successHeader');
 
             // Update header
             successHeader.querySelector('h1').textContent = 'Your Story Is Ready';
-            successHeader.querySelector('p').textContent = 'Read, print, or share your beautifully written chapter.';
+            successHeader.querySelector('p').textContent = 'Choose a style, then download or share your chapter.';
 
             // Set chapter title & meta
             const title = data.title || 'A Memory';
@@ -126,11 +217,9 @@
             // Render story markdown as HTML
             const storyBody = document.getElementById('storyBody');
             try {
-                // Use marked to render markdown
                 const html = marked.parse(data.story);
                 storyBody.innerHTML = html;
             } catch (e) {
-                // Fallback: plain text with paragraph splitting
                 const paragraphs = data.story.split(/\n\n+/);
                 storyBody.innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
             }
@@ -139,6 +228,51 @@
             loader.style.display = 'none';
             bookContainer.style.display = 'block';
         }
+
+        // ===== PDF DOWNLOAD =====
+        document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('downloadPdfBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="icon">⏳</span> Generating PDF…';
+
+            try {
+                const element = document.getElementById('bookPage');
+                const title = document.getElementById('chapterTitle').textContent || 'My Story';
+                const filename = title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').substring(0, 50);
+
+                // Get computed styles for the current theme
+                const computedStyle = getComputedStyle(element);
+                const bgColor = computedStyle.backgroundColor;
+
+                const opt = {
+                    margin:       [15, 15, 20, 15],
+                    filename:     `${filename}_MemoirMagic.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: bgColor,
+                        letterRendering: true,
+                        logging: false
+                    },
+                    jsPDF:        {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    },
+                    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(element).save();
+                showToast('PDF downloaded!');
+            } catch (err) {
+                console.error('PDF generation error:', err);
+                showToast('PDF download failed — try Print instead');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<span class="icon">📥</span> Download PDF';
+        });
 
         // ===== BUTTON HANDLERS =====
         document.getElementById('printBtn').addEventListener('click', () => {
@@ -153,7 +287,6 @@
             navigator.clipboard.writeText(fullText).then(() => {
                 showToast('Story copied to clipboard!');
             }).catch(() => {
-                // Fallback for older browsers
                 const ta = document.createElement('textarea');
                 ta.value = fullText;
                 document.body.appendChild(ta);
@@ -175,7 +308,6 @@
                     url: window.location.href
                 }).catch(() => {});
             } else {
-                // Fallback: copy link
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     showToast('Link copied — paste it in an email or message!');
                 });
