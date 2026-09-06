@@ -26,8 +26,9 @@ app.post('/create-checkout-session', async (req, res) => {
         pendingJobs.set(jobId, notes);
 
         // Create Stripe checkout session
+        const origin = req.headers.origin || req.headers.referer?.slice(0, -1) || `https://${req.headers['x-forwarded-host'] || req.get('host')}`;
+        
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
             line_items: [{
                 price_data: {
                     currency: 'gbp',
@@ -40,14 +41,14 @@ app.post('/create-checkout-session', async (req, res) => {
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `https://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
-            cancel_url: `https://${req.get('host')}/`,
+            success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
+            cancel_url: `${origin}/`,
         });
 
         res.json({ id: session.id });
     } catch (error) {
         console.error('Stripe error:', error);
-        res.status(500).json({ error: 'Failed to create checkout session' });
+        res.status(500).json({ error: `Stripe Error: ${error.message}` });
     }
 });
 
