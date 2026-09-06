@@ -393,6 +393,24 @@
                 printContainer.appendChild(clone);
                 document.body.appendChild(printContainer);
 
+                // Wait for layout to settle, then force height to exact A4 multiple
+                // A4 ratio = 297/210 = 1.4142857
+                // 794px * 1.4142857 = 1122.94px
+                const a4HeightPx = 1122.94;
+                const currentHeight = clone.getBoundingClientRect().height;
+                const totalPages = Math.ceil(currentHeight / a4HeightPx);
+                const targetHeight = totalPages * a4HeightPx;
+                
+                // Set the exact pixel height to fill the final page completely
+                clone.style.minHeight = `${targetHeight}px`;
+                clone.style.height = `${targetHeight}px`;
+
+                // Add slight vertical margin to paragraphs to ease text near page breaks
+                clone.querySelectorAll('.story-body p').forEach(p => {
+                    p.style.marginTop = '12px';
+                    p.style.marginBottom = '24px';
+                });
+
                 const opt = {
                     margin:       0, // 0 margin ensures full-bleed background (no white bits!)
                     filename:     `${filename}_Memoir.pdf`,
