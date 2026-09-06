@@ -517,6 +517,19 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
+.dictate-btn.unavailable {
+    opacity: 0.7;
+    background: #f1f5f9;
+    color: #64748b;
+    border-style: dashed;
+    cursor: pointer;
+}
+
+.dictate-btn.unavailable:hover {
+    border-color: #94a3b8;
+    background: #e2e8f0;
+}
+
 .draft-status {
     font-size: 0.78rem;
     color: #15803d;

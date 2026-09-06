@@ -139,6 +139,9 @@
                     <button class="btn-primary" id="downloadPdfBtn">
                         <span class="icon">📥</span> Download PDF
                     </button>
+                    <button class="btn-secondary" id="speakBtn">
+                        <span class="icon">🔊</span> Listen Aloud
+                    </button>
                     <button class="btn-secondary" id="printBtn">
                         <span class="icon">🖨️</span> Print
                     </button>
@@ -367,6 +370,57 @@
                 showToast('Story copied!');
             });
         });
+
+        // ===== INBUILT TEXT-TO-SPEECH (READ ALOUD) =====
+        const speakBtn = document.getElementById('speakBtn');
+        let isSpeaking = false;
+
+        if ('speechSynthesis' in window) {
+            speakBtn.addEventListener('click', () => {
+                if (isSpeaking) {
+                    window.speechSynthesis.cancel();
+                    isSpeaking = false;
+                    speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
+                    showToast('Reading stopped');
+                } else {
+                    const storyText = document.getElementById('storyBody').innerText;
+                    const title = document.getElementById('chapterTitle').textContent || '';
+                    const fullText = `${title}. ${storyText}`;
+
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(fullText);
+                    utterance.rate = 0.92; // warm storytelling pace
+                    utterance.pitch = 1.0;
+                    utterance.lang = navigator.language || 'en-GB';
+
+                    const voices = window.speechSynthesis.getVoices();
+                    const preferredVoice = voices.find(v => v.lang === 'en-GB' || v.lang.startsWith('en'));
+                    if (preferredVoice) utterance.voice = preferredVoice;
+
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        speakBtn.innerHTML = '<span class="icon">⏹️</span> Stop Listening';
+                        showToast('Reading story aloud…');
+                    };
+
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
+                    };
+
+                    utterance.onerror = () => {
+                        isSpeaking = false;
+                        speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            });
+        } else {
+            speakBtn.addEventListener('click', () => {
+                alert('Audio playback is unavailable on this device or browser.');
+            });
+        }
 
         document.getElementById('emailBtn').addEventListener('click', () => {
             const storyText = document.getElementById('storyBody').innerText;

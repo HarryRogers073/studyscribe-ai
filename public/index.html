@@ -429,56 +429,96 @@
         const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (SpeechRec) {
-            const recognition = new SpeechRec();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-GB';
-            let isRecording = false;
+            let recognition = null;
+            let isListening = false;
 
-            recognition.onstart = () => {
-                isRecording = true;
-                dictateBtn.classList.add('listening');
-                dictateBtn.innerHTML = '<span class="mic-icon">🔴</span> Listening… (click to stop)';
-            };
+            try {
+                recognition = new SpeechRec();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = navigator.language || 'en-GB';
 
-            recognition.onresult = (event) => {
-                let final = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        final += event.results[i][0].transcript;
+                recognition.onstart = () => {
+                    isListening = true;
+                    dictateBtn.classList.add('listening');
+                    dictateBtn.innerHTML = '<span class="mic-icon">🔴</span> Listening… (click when finished)';
+                };
+
+                recognition.onresult = (event) => {
+                    let finalSnippet = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalSnippet += event.results[i][0].transcript;
+                        }
                     }
-                }
-                if (final) {
-                    const current = storyInput.value;
-                    const space = current && !current.endsWith(' ') ? ' ' : '';
-                    storyInput.value = current + space + final.trim();
-                    updateWordCount();
-                    saveDraft();
-                }
-            };
+                    if (finalSnippet) {
+                        const current = storyInput.value;
+                        const space = current && !current.endsWith(' ') && !current.endsWith('\n') ? ' ' : '';
+                        storyInput.value = current + space + finalSnippet.trim();
+                        updateWordCount();
+                        saveDraft();
+                    }
+                };
 
-            recognition.onerror = (e) => {
-                console.warn('Speech recognition:', e.error);
-                isRecording = false;
-                dictateBtn.classList.remove('listening');
-                dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
-            };
+                recognition.onerror = (e) => {
+                    console.warn('Speech recognition event:', e.error);
+                    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                        alert('Microphone access was not permitted. Please allow microphone access in your browser to dictate your memory.');
+                        isListening = false;
+                        dictateBtn.classList.remove('listening');
+                        dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+                    }
+                };
 
-            recognition.onend = () => {
-                isRecording = false;
-                dictateBtn.classList.remove('listening');
-                dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
-            };
+                recognition.onend = () => {
+                    // Auto-restart if user has not clicked to stop (prevents premature cutoffs on mobile/Edge)
+                    if (isListening) {
+                        try {
+                            recognition.start();
+                        } catch (err) {
+                            isListening = false;
+                            dictateBtn.classList.remove('listening');
+                            dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+                        }
+                    } else {
+                        dictateBtn.classList.remove('listening');
+                        dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+                    }
+                };
 
-            dictateBtn.addEventListener('click', () => {
-                if (isRecording) {
-                    recognition.stop();
-                } else {
-                    recognition.start();
-                }
-            });
+                dictateBtn.addEventListener('click', () => {
+                    if (isListening) {
+                        isListening = false;
+                        try { recognition.stop(); } catch(e) {}
+                        dictateBtn.classList.remove('listening');
+                        dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+                    } else {
+                        try {
+                            isListening = true;
+                            recognition.start();
+                        } catch(e) {
+                            console.error('Failed to start speech recognition:', e);
+                            isListening = false;
+                            dictateBtn.classList.remove('listening');
+                            dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictate Story';
+                        }
+                    }
+                });
+            } catch (err) {
+                markDictationUnavailable();
+            }
         } else {
-            dictateBtn.style.display = 'none';
+            markDictationUnavailable();
+        }
+
+        function markDictationUnavailable() {
+            dictateBtn.classList.add('unavailable');
+            dictateBtn.innerHTML = '<span class="mic-icon">🎙️</span> Dictation unavailable on this device';
+            dictateBtn.title = 'Speech dictation is not supported by your current browser. Click for info.';
+            dictateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Speech dictation is unavailable on this device or browser.\n\nYou can type your memory notes directly into the box, or open MemoirMagic in Google Chrome, Microsoft Edge, or Apple Safari on an iPhone/iPad or Mac to use microphone dictation.');
+            });
         }
 
         // ===== CHECKOUT =====
