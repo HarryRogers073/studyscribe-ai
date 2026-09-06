@@ -134,6 +134,9 @@
                     <button class="btn-secondary" id="copyBtn">
                         <span class="icon">📋</span> Copy Text
                     </button>
+                    <button class="btn-secondary" id="emailBtn">
+                        <span class="icon">✉️</span> Email Story
+                    </button>
                     <button class="btn-secondary" id="shareBtn">
                         <span class="icon">📤</span> Share
                     </button>
@@ -327,6 +330,17 @@
                 document.body.removeChild(ta);
                 showToast('Story copied!');
             });
+        });
+
+        document.getElementById('emailBtn').addEventListener('click', () => {
+            const storyText = document.getElementById('storyBody').innerText;
+            const title = document.getElementById('chapterTitle').textContent || 'My Story';
+            const subject = encodeURIComponent(`${title} — My Story (MemoirMagic)`);
+            const body = encodeURIComponent(`${title}\n\n${storyText}\n\n— Preserved with MemoirMagic`);
+
+            const to = (storyData && storyData.email) ? encodeURIComponent(storyData.email) : '';
+            window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+            showToast(to ? `Opening email to ${decodeURIComponent(to)}…` : 'Opening email client…');
         });
 
         document.getElementById('shareBtn').addEventListener('click', () => {

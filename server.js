@@ -19,7 +19,7 @@ const pendingJobs = new Map();
 // ===== CREATE CHECKOUT SESSION =====
 app.post('/create-checkout-session', async (req, res) => {
     try {
-        let { title, people, date, location, story } = req.body;
+        let { title, people, date, location, story, email } = req.body;
 
         if (!story || typeof story !== 'string' || !story.trim()) {
             return res.status(400).json({ error: 'Please tell us your memory before checking out.' });
@@ -31,23 +31,24 @@ app.post('/create-checkout-session', async (req, res) => {
         date = (date || '').slice(0, 100).trim();
         location = (location || '').slice(0, 200).trim();
         story = story.slice(0, 8000).trim();
+        email = (email || '').slice(0, 120).trim();
 
         // Create a unique ID for this job
         const jobId = Math.random().toString(36).substring(7);
-        pendingJobs.set(jobId, { title, people, date, location, story });
+        pendingJobs.set(jobId, { title, people, date, location, story, email });
 
         // Build origin URL
         const origin = req.headers.origin
             || req.headers.referer?.slice(0, -1)
             || `https://${req.headers['x-forwarded-host'] || req.get('host')}`;
 
-        const session = await stripe.checkout.sessions.create({
+        const sessionPayload = {
             line_items: [{
                 price_data: {
                     currency: 'gbp',
                     product_data: {
-                        name: 'MemoirMagic AI — Story Chapter',
-                        description: `Your memory "${(title || 'Untitled').substring(0, 60)}" transformed into a beautifully written story.`,
+                        name: 'MemoirMagic AI — Story Chapter (Launch Offer)',
+                        description: `Your memory "${(title || 'Untitled').substring(0, 50)}" transformed into a beautifully written story. Special 70% launch discount.`,
                     },
                     unit_amount: 299, // £2.99
                 },
@@ -57,7 +58,13 @@ app.post('/create-checkout-session', async (req, res) => {
             managed_payments: { enabled: false },
             success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
             cancel_url: `${origin}/`,
-        });
+        };
+
+        if (email && email.includes('@')) {
+            sessionPayload.customer_email = email;
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionPayload);
 
         res.json({ id: session.id });
     } catch (error) {
@@ -76,7 +83,7 @@ app.post('/generate-story', async (req, res) => {
             return res.status(400).json({ error: 'Session expired or already processed. Please try again.' });
         }
 
-        const { title, people, date, location, story } = memoryData;
+        const { title, people, date, location, story, email } = memoryData;
 
         // Build the prompt with structured context
         const contextParts = [];
@@ -156,7 +163,8 @@ Now write this memory as an evocative, beautifully finished memoir chapter:`;
             story: text,
             title: title || 'A Memory',
             date: date || '',
-            location: location || ''
+            location: location || '',
+            email: email || ''
         });
     } catch (error) {
         console.error('Gemini error:', error);

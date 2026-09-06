@@ -13,6 +13,12 @@
 </head>
 <body>
 
+    <!-- ===== ANNOUNCEMENT BAR ===== -->
+    <div class="announcement-bar">
+        <span class="pulse-dot"></span>
+        <span><strong>LAUNCH SALE:</strong> 70% OFF — Normally <span class="strikethrough">£9.99</span>, only <strong>£2.99</strong> today! Special founder pricing ends soon.</span>
+    </div>
+
     <!-- ===== NAVIGATION ===== -->
     <nav class="top-bar" id="topBar">
         <div class="top-bar-inner">
@@ -24,10 +30,10 @@
     <!-- ===== HERO ===== -->
     <section class="hero">
         <div class="container">
-            <div class="hero-eyebrow">Preserve Your Legacy</div>
+            <div class="hero-eyebrow">⚡ LIMITED TIME LAUNCH OFFER · 70% OFF</div>
             <h1>Turn Your Memories Into <em>Beautiful Stories</em></h1>
             <p class="hero-sub">Just jot down what you remember — who was there, when it happened, what made it special. Our AI transforms your words into an elegantly written story chapter you'll treasure forever.</p>
-            <a href="#write" class="hero-cta">Start Writing — £2.99 per chapter</a>
+            <a href="#write" class="hero-cta">Write My Story — <span style="text-decoration: line-through; opacity: 0.7; font-weight: 400; margin-right: 4px;">£9.99</span> £2.99</a>
 
             <div class="hero-stats">
                 <div class="hero-stat">
@@ -110,10 +116,19 @@
                     <textarea id="memoryStory" class="form-input" placeholder="Just write whatever you remember... the sights, the smells, the funny moments, the feelings. Don't worry about getting it perfect — that's our job."></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label for="memoryEmail">Where should we email your story? <span class="hint">— Optional, to receive a backup copy</span></label>
+                    <input type="email" id="memoryEmail" class="form-input" placeholder="e.g. yourname@gmail.com">
+                </div>
+
                 <div class="form-footer">
-                    <div class="price-display">
-                        <span class="price-amount">£2.99</span>
-                        <span class="price-per">per story chapter</span>
+                    <div class="price-display-wrapper">
+                        <div class="price-display">
+                            <span class="price-original">£9.99</span>
+                            <span class="price-amount">£2.99</span>
+                            <span class="discount-badge">SAVE 70%</span>
+                        </div>
+                        <div class="price-guarantee">✓ Instant Delivery · ✓ PDF Included · ✓ One-Time Payment</div>
                     </div>
                     <button id="checkoutBtn" class="btn-primary">
                         Write My Story <span class="arrow">→</span>
@@ -263,6 +278,7 @@
             const date = document.getElementById('memoryDate').value.trim();
             const location = document.getElementById('memoryLocation').value.trim();
             const story = document.getElementById('memoryStory').value.trim();
+            const email = document.getElementById('memoryEmail').value.trim();
 
             if (!story) {
                 // Gentle shake animation
@@ -280,7 +296,7 @@
                 const response = await fetch('/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, people, date, location, story })
+                    body: JSON.stringify({ title, people, date, location, story, email })
                 });
                 const session = await response.json();
 

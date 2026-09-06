@@ -91,18 +91,57 @@ body {
     transform: translateY(0);
 }
 
+/* ===== ANNOUNCEMENT BAR ===== */
+.announcement-bar {
+    background: linear-gradient(90deg, #b45309, #d97706, #b45309);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 16px;
+    letter-spacing: 0.3px;
+    position: relative;
+    z-index: 101;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.announcement-bar .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #4ade80;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    animation: pulse-green 1.8s infinite;
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.announcement-bar .strikethrough {
+    text-decoration: line-through;
+    opacity: 0.8;
+}
+
 /* ===== NAVIGATION ===== */
 .top-bar {
     position: fixed;
-    top: 0;
+    top: 36px;
     left: 0;
     right: 0;
     z-index: 100;
     padding: 16px 0;
-    transition: background 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease, top 0.3s ease;
 }
 
 .top-bar.scrolled {
+    top: 0;
     background: rgba(13, 27, 42, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -437,22 +476,50 @@ textarea.form-input {
     border-top: 1px solid var(--border-light);
 }
 
+.price-display-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
 .price-display {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.price-original {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: line-through;
 }
 
 .price-amount {
     font-family: var(--font-serif);
-    font-size: 2rem;
+    font-size: 2.1rem;
     font-weight: 700;
     color: var(--text-dark);
 }
 
-.price-per {
-    font-size: 0.9rem;
+.discount-badge {
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    vertical-align: middle;
+}
+
+.price-guarantee {
+    font-size: 0.8rem;
     color: var(--text-muted);
+    letter-spacing: 0.2px;
 }
 
 .btn-primary {
