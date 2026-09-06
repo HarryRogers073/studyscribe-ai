@@ -3,39 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Study Guide - StudyScribe AI</title>
+    <title>Your Story — MemoirMagic AI</title>
+    <meta name="description" content="Your beautifully written story chapter, powered by MemoirMagic AI.">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="container" style="max-width: 800px;">
-        <header>
-            <div class="logo">StudyScribe AI</div>
-            <p class="tagline">Payment Successful. Generating your premium guide...</p>
-        </header>
 
-        <main>
-            <div class="clean-card result-card">
-                <div id="loader" class="loader">🧠 AI is thinking...</div>
-                <div id="resultContent" class="markdown-body" style="display: none; white-space: pre-wrap; text-align: left;"></div>
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="top-bar scrolled">
+        <div class="top-bar-inner">
+            <a href="/" class="brand">Memoir<span>Magic</span></a>
+            <a href="/" class="nav-cta">Write Another Chapter</a>
+        </div>
+    </nav>
+
+    <div class="success-page">
+        <div class="container-narrow">
+
+            <!-- Success Header -->
+            <div class="success-header" id="successHeader">
+                <div class="success-badge">✓ Payment Successful</div>
+                <h1>Crafting Your Story…</h1>
+                <p>Our AI writer is turning your memory into a beautiful narrative.</p>
             </div>
-            <a href="/" class="primary-btn" style="display: block; width: 200px; margin: 30px auto; text-align: center; text-decoration: none;">Generate Another</a>
-        </main>
+
+            <!-- Loader -->
+            <div id="loader" class="loader-container">
+                <div class="loader-spinner"></div>
+                <p class="loader-text">Writing your story…</p>
+                <p class="loader-sub">This usually takes 15–30 seconds</p>
+            </div>
+
+            <!-- Error (hidden by default) -->
+            <div id="errorContainer" style="display: none;">
+                <div class="error-card">
+                    <h2>Something Went Wrong</h2>
+                    <p id="errorMessage">We couldn't generate your story. Please try again.</p>
+                </div>
+                <div class="write-another">
+                    <a href="/" class="btn-primary">Try Again <span class="arrow">→</span></a>
+                </div>
+            </div>
+
+            <!-- Book Page (hidden until story is ready) -->
+            <div id="bookContainer" style="display: none;">
+                <div class="book-page" id="bookPage">
+                    <div class="chapter-header">
+                        <div class="chapter-label">A MemoirMagic Chapter</div>
+                        <h2 class="chapter-title" id="chapterTitle">Your Story</h2>
+                        <div class="chapter-meta" id="chapterMeta"></div>
+                    </div>
+                    <div class="story-body" id="storyBody"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-bar">
+                    <button class="btn-secondary" id="printBtn">
+                        <span class="icon">🖨️</span> Print Story
+                    </button>
+                    <button class="btn-secondary" id="copyBtn">
+                        <span class="icon">📋</span> Copy Text
+                    </button>
+                    <button class="btn-secondary" id="shareBtn">
+                        <span class="icon">📤</span> Share
+                    </button>
+                </div>
+
+                <!-- Write Another -->
+                <div class="write-another">
+                    <p>Every memory deserves to be told beautifully.</p>
+                    <a href="/" class="btn-primary">Write Another Chapter <span class="arrow">→</span></a>
+                </div>
+            </div>
+
+        </div>
     </div>
 
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">MemoirMagic</div>
+            <p class="footer-text">© 2026 MemoirMagic AI. Your stories, beautifully told.</p>
+        </div>
+    </footer>
+
     <script>
+        // ===== TOAST =====
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // ===== RENDER STORY =====
+        function renderStory(data) {
+            const loader = document.getElementById('loader');
+            const bookContainer = document.getElementById('bookContainer');
+            const successHeader = document.getElementById('successHeader');
+
+            // Update header
+            successHeader.querySelector('h1').textContent = 'Your Story Is Ready';
+            successHeader.querySelector('p').textContent = 'Read, print, or share your beautifully written chapter.';
+
+            // Set chapter title & meta
+            const title = data.title || 'A Memory';
+            const metaParts = [];
+            if (data.date) metaParts.push(data.date);
+            if (data.location) metaParts.push(data.location);
+
+            document.getElementById('chapterTitle').textContent = title;
+            document.getElementById('chapterMeta').textContent = metaParts.join(' · ') || '';
+
+            // Render story markdown as HTML
+            const storyBody = document.getElementById('storyBody');
+            try {
+                // Use marked to render markdown
+                const html = marked.parse(data.story);
+                storyBody.innerHTML = html;
+            } catch (e) {
+                // Fallback: plain text with paragraph splitting
+                const paragraphs = data.story.split(/\n\n+/);
+                storyBody.innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+            }
+
+            // Show the book
+            loader.style.display = 'none';
+            bookContainer.style.display = 'block';
+        }
+
+        // ===== BUTTON HANDLERS =====
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const storyText = document.getElementById('storyBody').innerText;
+            const title = document.getElementById('chapterTitle').textContent;
+            const fullText = `${title}\n\n${storyText}\n\n— Written with MemoirMagic AI`;
+
+            navigator.clipboard.writeText(fullText).then(() => {
+                showToast('Story copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const ta = document.createElement('textarea');
+                ta.value = fullText;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Story copied!');
+            });
+        });
+
+        document.getElementById('shareBtn').addEventListener('click', () => {
+            const storyText = document.getElementById('storyBody').innerText;
+            const title = document.getElementById('chapterTitle').textContent;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: `${title} — MemoirMagic`,
+                    text: storyText.substring(0, 500) + '…\n\nWritten with MemoirMagic AI',
+                    url: window.location.href
+                }).catch(() => {});
+            } else {
+                // Fallback: copy link
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showToast('Link copied — paste it in an email or message!');
+                });
+            }
+        });
+
+        // ===== MAIN LOGIC =====
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const jobId = urlParams.get('job_id');
             const sessionId = urlParams.get('session_id');
 
             if (!jobId || !sessionId) {
-                document.getElementById('loader').innerText = "Error: Invalid Session.";
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Invalid session. Please start over.';
                 return;
             }
 
             try {
-                const response = await fetch('/generate-guide', {
+                const response = await fetch('/generate-story', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ jobId })
@@ -44,16 +205,18 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    document.getElementById('loader').innerText = "Error: " + data.error;
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('errorContainer').style.display = 'block';
+                    document.getElementById('errorMessage').textContent = data.error;
                     return;
                 }
 
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('resultContent').style.display = 'block';
-                document.getElementById('resultContent').innerText = data.guide;
+                renderStory(data);
             } catch (error) {
-                console.error(error);
-                document.getElementById('loader').innerText = "Failed to communicate with AI.";
+                console.error('Generation error:', error);
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Failed to connect. Please check your internet and try again.';
             }
         };
     </script>

@@ -1,12 +1,13 @@
 {
-  "name": "ai_saas_platform",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "memoirmagic-ai",
+  "version": "2.0.0",
+  "description": "MemoirMagic AI — Turn your memories into beautiful stories",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["memoir", "ai", "storytelling", "gemini"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

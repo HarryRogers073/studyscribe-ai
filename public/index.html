@@ -3,82 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyScribe AI - Premium Study Guides</title>
+    <title>MemoirMagic AI — Turn Your Memories Into Beautiful Stories</title>
+    <meta name="description" content="Transform scattered memories into beautifully written story chapters in seconds. The easiest way to preserve your life's most precious moments. Powered by AI.">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">StudyScribe AI</div>
-            <p class="tagline">Turn your messy lecture notes into perfect study guides instantly.</p>
-        </header>
 
-        <main>
-            <div class="clean-card">
-                <h2>Paste Your Notes</h2>
-                <textarea id="notesInput" placeholder="Paste your messy lecture notes, transcripts, or chaotic thoughts here..."></textarea>
-                
-                <div class="action-section">
-                    <div class="price-tag">£1.99</div>
-                    <button id="checkoutBtn" class="primary-btn">Generate Premium Guide</button>
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="top-bar" id="topBar">
+        <div class="top-bar-inner">
+            <a href="/" class="brand">Memoir<span>Magic</span></a>
+            <a href="#write" class="nav-cta">Write Your Story</a>
+        </div>
+    </nav>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-eyebrow">Preserve Your Legacy</div>
+            <h1>Turn Your Memories Into <em>Beautiful Stories</em></h1>
+            <p class="hero-sub">Just jot down what you remember — who was there, when it happened, what made it special. Our AI transforms your words into an elegantly written story chapter you'll treasure forever.</p>
+            <a href="#write" class="hero-cta">Start Writing — £2.99 per chapter</a>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-num">2,400+</div>
+                    <div class="hero-stat-label">Stories Written</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">4.9★</div>
+                    <div class="hero-stat-label">Average Rating</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">£2.99</div>
+                    <div class="hero-stat-label">Per Chapter</div>
                 </div>
             </div>
-            <div class="features">
-                <div class="feature"><span class="icon">✨</span> Structured Summaries</div>
-                <div class="feature"><span class="icon">🧠</span> Smart Flashcards</div>
-                <div class="feature"><span class="icon">📝</span> Practice Questions</div>
+        </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="section" id="how">
+        <div class="container">
+            <div class="section-label fade-up">How It Works</div>
+            <h2 class="section-title fade-up">Three Simple Steps</h2>
+            <p class="section-subtitle fade-up">No writing skills needed. Just share your memory and let us do the rest.</p>
+
+            <div class="steps">
+                <div class="step fade-up">
+                    <div class="step-num">1</div>
+                    <span class="step-icon">✏️</span>
+                    <h3>Tell Us Your Memory</h3>
+                    <p>Fill in a few simple details — who was there, when and where it happened, and what you remember. Don't worry about grammar or spelling.</p>
+                </div>
+                <div class="step fade-up">
+                    <div class="step-num">2</div>
+                    <span class="step-icon">✨</span>
+                    <h3>AI Writes Your Story</h3>
+                    <p>Our AI transforms your scattered notes into a beautifully narrated story chapter — warm, vivid, and true to your voice.</p>
+                </div>
+                <div class="step fade-up">
+                    <div class="step-num">3</div>
+                    <span class="step-icon">📖</span>
+                    <h3>Print & Share</h3>
+                    <p>Your story appears as an elegant book page. Print it, save it as a PDF, or share it with your family. Build your memoir one chapter at a time.</p>
+                </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </section>
+
+    <!-- ===== WRITE YOUR STORY FORM ===== -->
+    <section class="form-section" id="write">
+        <div class="container">
+            <div class="section-label" style="color: var(--gold);">Write Your Story</div>
+            <h2 class="section-title" style="color: #fff;">Share a Memory</h2>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.5);">Just fill in the details below. We'll take care of the storytelling.</p>
+
+            <div class="form-card">
+                <div class="form-group">
+                    <label for="memoryTitle">What's this memory about? <span class="hint">— Give it a title</span></label>
+                    <input type="text" id="memoryTitle" class="form-input" placeholder="e.g. The Summer We Drove to Cornwall, Dad's 70th Birthday, My First Day at Work...">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="memoryPeople">Who was there?</label>
+                        <input type="text" id="memoryPeople" class="form-input" placeholder="e.g. Mum, Dad, Uncle Jim, my best friend Sarah">
+                    </div>
+                    <div class="form-group">
+                        <label for="memoryDate">When was this? <span class="hint">— Roughly</span></label>
+                        <input type="text" id="memoryDate" class="form-input" placeholder="e.g. Summer 1985, Christmas 2003, the early '90s">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="memoryLocation">Where did it happen?</label>
+                    <input type="text" id="memoryLocation" class="form-input" placeholder="e.g. Grandma's cottage in Devon, our old house on Elm Street, the Lake District">
+                </div>
+
+                <div class="form-group">
+                    <label for="memoryStory">Tell us what happened <span class="hint">— In your own words, however messy</span></label>
+                    <textarea id="memoryStory" class="form-input" placeholder="Just write whatever you remember... the sights, the smells, the funny moments, the feelings. Don't worry about getting it perfect — that's our job."></textarea>
+                </div>
+
+                <div class="form-footer">
+                    <div class="price-display">
+                        <span class="price-amount">£2.99</span>
+                        <span class="price-per">per story chapter</span>
+                    </div>
+                    <button id="checkoutBtn" class="btn-primary">
+                        Write My Story <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-label fade-up">Why MemoirMagic</div>
+            <h2 class="section-title fade-up">Your Stories Deserve to Be Told</h2>
+            <p class="section-subtitle fade-up">A ghostwriter would cost hundreds. We give you the same magic for the price of a coffee.</p>
+
+            <div class="features-grid">
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">📜</span>
+                    <h3>Elegant Book Pages</h3>
+                    <p>Every story is presented on a beautiful book-style page with drop caps, serif typography, and chapter headings.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">🖨️</span>
+                    <h3>Print-Ready</h3>
+                    <p>Hit print and get a gorgeous page ready to frame, file in a binder, or add to your family memoir collection.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">👨‍👩‍👧‍👦</span>
+                    <h3>Share with Family</h3>
+                    <p>Copy your story and share it by email, WhatsApp, or as a printed gift. Your grandchildren will thank you.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Private & Secure</h3>
+                    <p>Your memories are yours. We never store, share, or train on your personal stories. They're processed and forgotten.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Ready in Seconds</h3>
+                    <p>No waiting days or weeks. Your beautifully written story appears in under a minute.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">💷</span>
+                    <h3>Incredible Value</h3>
+                    <p>A professional ghostwriter charges £500+. MemoirMagic gives you publishable-quality writing for less than a latte.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TESTIMONIAL ===== -->
+    <section class="section testimonial-section">
+        <div class="container">
+            <div class="testimonial fade-up">
+                <p class="testimonial-quote">I typed in a few sentences about my wedding day in 1978 and out came the most beautiful story I've ever read about my own life. I printed it and my wife cried. Worth every penny.</p>
+                <p class="testimonial-author">Margaret W.</p>
+                <p class="testimonial-role">Retired Teacher, Devon</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ ===== -->
+    <section class="section" id="faq">
+        <div class="container">
+            <div class="section-label fade-up">Questions</div>
+            <h2 class="section-title fade-up">Frequently Asked</h2>
+            <p class="section-subtitle fade-up">Everything you need to know about MemoirMagic.</p>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Do I need to be a good writer?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Not at all! Just jot down your memories in whatever words come to mind — bullet points, half sentences, stream of consciousness. Our AI handles all the storytelling, grammar, and structure. The messier, the better.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        How long is each story chapter?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Each chapter is typically 400–800 words — about 1–2 printed pages. Long enough to tell a complete story, short enough to stay engaging. The more detail you give us, the richer the chapter.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Can I build a full memoir over time?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Absolutely. Many of our users write one chapter at a time — a childhood memory this week, a holiday memory next week. Print them all and collect them in a binder. You're building your life story, one chapter at a time.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Is my information kept private?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. Your memories are processed by the AI and then immediately deleted from our system. We never store, share, or use your personal stories for any other purpose. Your life is your story to tell.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Can I print or save my story?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes! Every story page has a print button that produces a beautifully formatted page. You can also use your browser's "Save as PDF" option, or copy the text to paste into a Word document or email.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Why does it only cost £2.99?
+                        <span class="faq-chevron">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>We believe everyone deserves to have their stories told beautifully, not just those who can afford a £500 ghostwriter. AI makes it possible to offer professional-quality writing at a fraction of the cost.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">MemoirMagic</div>
+            <p class="footer-text">© 2026 MemoirMagic AI. Your stories, beautifully told.</p>
+        </div>
+    </footer>
 
     <script>
+        // ===== STRIPE SETUP =====
+        const stripe = Stripe('pk_test_51UCdsbAoBDUkVEa2k524JagZvfaxQNIuuDW6fOz4GrYBJRC19nNbg7faSAHwNRePJvbWv0hfAsqsKy79NdVpYRiD00xFRafq6K');
+
+        // ===== CHECKOUT =====
         const checkoutBtn = document.getElementById('checkoutBtn');
-        const notesInput = document.getElementById('notesInput');
-        
-        // IMPORTANT: Replace with your actual Stripe Publishable Key
-        const stripe = Stripe('pk_test_51UCdsbAoBDUkVEa2k524JagZvfaxQNIuuDW6fOz4GrYBJRC19nNbg7faSAHwNRePJvbWv0hfAsqsKy79NdVpYRiD00xFRafq6K'); 
 
         checkoutBtn.addEventListener('click', async () => {
-            const notes = notesInput.value.trim();
-            if (!notes) {
-                alert('Please paste some notes first!');
+            const title = document.getElementById('memoryTitle').value.trim();
+            const people = document.getElementById('memoryPeople').value.trim();
+            const date = document.getElementById('memoryDate').value.trim();
+            const location = document.getElementById('memoryLocation').value.trim();
+            const story = document.getElementById('memoryStory').value.trim();
+
+            if (!story) {
+                // Gentle shake animation
+                const textarea = document.getElementById('memoryStory');
+                textarea.style.borderColor = '#c0392b';
+                textarea.focus();
+                setTimeout(() => textarea.style.borderColor = '', 2000);
                 return;
             }
 
-            checkoutBtn.textContent = 'Processing...';
             checkoutBtn.disabled = true;
+            checkoutBtn.innerHTML = 'Processing… <span class="arrow">→</span>';
 
             try {
                 const response = await fetch('/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ notes })
+                    body: JSON.stringify({ title, people, date, location, story })
                 });
                 const session = await response.json();
-                
+
                 if (session.error) {
                     alert(session.error);
-                    checkoutBtn.textContent = 'Generate Premium Guide';
                     checkoutBtn.disabled = false;
+                    checkoutBtn.innerHTML = 'Write My Story <span class="arrow">→</span>';
                     return;
                 }
 
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.id,
-                });
-
-                if (result.error) {
-                    alert(result.error.message);
-                }
+                await stripe.redirectToCheckout({ sessionId: session.id });
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Is the server running?');
+                console.error('Checkout error:', error);
+                alert('Something went wrong. Please try again.');
             }
-            checkoutBtn.textContent = 'Generate Premium Guide';
             checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = 'Write My Story <span class="arrow">→</span>';
+        });
+
+        // ===== STICKY NAV =====
+        const topBar = document.getElementById('topBar');
+        window.addEventListener('scroll', () => {
+            topBar.classList.toggle('scrolled', window.scrollY > 40);
+        });
+
+        // ===== SCROLL ANIMATIONS =====
+        const fadeEls = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        fadeEls.forEach(el => observer.observe(el));
+
+        // ===== FAQ ACCORDION =====
+        document.querySelectorAll('.faq-question').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.parentElement;
+                const isActive = item.classList.contains('active');
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                // Toggle current
+                if (!isActive) item.classList.add('active');
+                btn.setAttribute('aria-expanded', !isActive);
+            });
+        });
+
+        // ===== SMOOTH SCROLL =====
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
         });
     </script>
 </body>
