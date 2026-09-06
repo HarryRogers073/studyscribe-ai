@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyScribe AI - Premium Study Guides</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">StudyScribe AI</div>
+            <p class="tagline">Turn your messy lecture notes into perfect study guides instantly.</p>
+        </header>
+
+        <main>
+            <div class="glass-card">
+                <h2>Paste Your Notes</h2>
+                <textarea id="notesInput" placeholder="Paste your messy lecture notes, transcripts, or chaotic thoughts here..."></textarea>
+                
+                <div class="action-section">
+                    <div class="price-tag">£1.99</div>
+                    <button id="checkoutBtn" class="primary-btn">Generate Premium Guide</button>
+                </div>
+            </div>
+            <div class="features">
+                <div class="feature"><span class="icon">✨</span> Structured Summaries</div>
+                <div class="feature"><span class="icon">🧠</span> Smart Flashcards</div>
+                <div class="feature"><span class="icon">📝</span> Practice Questions</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const notesInput = document.getElementById('notesInput');
+        
+        // IMPORTANT: Replace with your actual Stripe Publishable Key
+        const stripe = Stripe('pk_live_51UCdsbAoBDUkVEa2EtbiQoPf4Hzyo2zdYp23bufWFWbFMfVrj2ApDRsbUpZXOLfBdDGvpqiuTnGzU2atRrFKkqo800JlIX7Ffh'); 
+
+        checkoutBtn.addEventListener('click', async () => {
+            const notes = notesInput.value.trim();
+            if (!notes) {
+                alert('Please paste some notes first!');
+                return;
+            }
+
+            checkoutBtn.textContent = 'Processing...';
+            checkoutBtn.disabled = true;
+
+            try {
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes })
+                });
+                const session = await response.json();
+                
+                if (session.error) {
+                    alert(session.error);
+                    checkoutBtn.textContent = 'Generate Premium Guide';
+                    checkoutBtn.disabled = false;
+                    return;
+                }
+
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id,
+                });
+
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Is the server running?');
+            }
+            checkoutBtn.textContent = 'Generate Premium Guide';
+            checkoutBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
