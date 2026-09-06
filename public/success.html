@@ -287,34 +287,37 @@
                 const filename = (title.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') || 'Story').substring(0, 45);
 
                 const computedStyle = window.getComputedStyle(element);
-                const bgColor = computedStyle.backgroundColor || '#fffdf7';
+                const bgColor = computedStyle.backgroundColor || '#FAF7F2';
 
-                // Create clean isolated render container at top: 0, left: 0
-                // This eliminates the 2 blank pages caused by scroll position and DOM offset!
+                // Standard A4 width at 96 DPI is 794px (210mm)
+                // Height is 1123px (297mm)
                 printContainer = document.createElement('div');
                 printContainer.style.position = 'fixed';
                 printContainer.style.top = '0';
                 printContainer.style.left = '0';
-                printContainer.style.width = '700px';
+                printContainer.style.width = '794px';
                 printContainer.style.zIndex = '999999';
                 printContainer.style.backgroundColor = bgColor;
                 printContainer.style.overflow = 'visible';
 
                 // Clone the book page with its active theme class
                 const clone = element.cloneNode(true);
+                clone.classList.add('pdf-export-mode');
                 clone.style.margin = '0';
                 clone.style.boxShadow = 'none';
                 clone.style.border = 'none';
+                clone.style.outline = 'none';
                 clone.style.borderRadius = '0';
                 clone.style.minHeight = 'auto';
-                clone.style.padding = '35px 45px';
+                clone.style.padding = '55px 65px';
                 clone.style.width = '100%';
+                clone.style.backgroundColor = bgColor;
 
                 printContainer.appendChild(clone);
                 document.body.appendChild(printContainer);
 
                 const opt = {
-                    margin:       [10, 10, 12, 10],
+                    margin:       0, // 0 margin ensures full-bleed theme background without card borders
                     filename:     `${filename}_Memoir.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  {
@@ -330,7 +333,10 @@
                         format: 'a4',
                         orientation: 'portrait'
                     },
-                    pagebreak:    { mode: ['css', 'legacy'] }
+                    pagebreak:    {
+                        mode: ['css', 'legacy'],
+                        avoid: ['p', 'h1', 'h2', 'h3', '.chapter-header', 'blockquote']
+                    }
                 };
 
                 await html2pdf().set(opt).from(clone).save();
@@ -356,7 +362,7 @@
         document.getElementById('copyBtn').addEventListener('click', () => {
             const storyText = document.getElementById('storyBody').innerText;
             const title = document.getElementById('chapterTitle').textContent;
-            const fullText = `${title}\n\n${storyText}\n\n— Written with MemoirMagic AI`;
+            const fullText = `${title}\n\n${storyText}`;
 
             navigator.clipboard.writeText(fullText).then(() => {
                 showToast('Story copied to clipboard!');
@@ -440,7 +446,7 @@
             if (navigator.share) {
                 navigator.share({
                     title: `${title} — MemoirMagic`,
-                    text: storyText.substring(0, 500) + '…\n\nWritten with MemoirMagic AI',
+                    text: storyText.substring(0, 500) + '…',
                     url: window.location.href
                 }).catch(() => {});
             } else {

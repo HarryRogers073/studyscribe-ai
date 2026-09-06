@@ -1726,3 +1726,33 @@ textarea.form-input {
         color: #666 !important;
     }
 }
+
+/* ===== PDF CLEAN EXPORT MODE (Borderless, full-bleed, seamless pagination) ===== */
+.pdf-export-mode,
+.pdf-export-mode.book-page {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.pdf-export-mode::before,
+.pdf-export-mode::after {
+    display: none !important;
+    content: none !important;
+}
+
+.pdf-export-mode .chapter-header {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+.pdf-export-mode .story-body p {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 1.3em;
+}
+
