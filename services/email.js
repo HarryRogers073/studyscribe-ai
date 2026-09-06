@@ -1,4 +1,4 @@
-﻿const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
 function createTransporter() {
     // Check custom SMTP
@@ -202,7 +202,7 @@ async function sendStoryEmail({ to, title, story, date, location, storyUrl, id }
     }
 
     try {
-        const fromAddress = process.env.FROM_EMAIL || process.env.SMTP_USER || 'no-reply@memoirmagic.co.uk';
+        const fromAddress = process.env.FROM_EMAIL || process.env.SMTP_USER || 'support@memoirmagic.co.uk';
         const info = await transporter.sendMail({
             from: `"MemoirMagic" <${fromAddress}>`,
             to,
