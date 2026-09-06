@@ -47,8 +47,8 @@ app.post('/create-checkout-session', async (req, res) => {
                 price_data: {
                     currency: 'gbp',
                     product_data: {
-                        name: 'MemoirMagic AI — Story Chapter (Launch Offer)',
-                        description: `Your memory "${(title || 'Untitled').substring(0, 50)}" transformed into a beautifully written story. Special 70% launch discount.`,
+                        name: 'MemoirMagic AI — Story Chapter',
+                        description: `Your memory "${(title || 'Untitled').substring(0, 50)}" transformed into a beautifully written story chapter.`,
                     },
                     unit_amount: 299, // £2.99
                 },
