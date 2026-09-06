@@ -82,7 +82,7 @@ ${notes}`;
         res.json({ guide: text });
     } catch (error) {
         console.error('Gemini error:', error);
-        res.status(500).json({ error: 'Failed to generate study guide' });
+        res.status(500).json({ error: `Gemini Error: ${error.message}` });
     }
 });
 
