@@ -574,12 +574,11 @@
                 if (session.url) {
                     window.location.href = session.url;
                     return;
-                } else if (session.id) {
-                    await stripe.redirectToCheckout({ sessionId: session.id });
-                    return;
                 }
-                console.error('Checkout error:', error);
-                alert('Something went wrong. Please try again.');
+                throw new Error("Invalid checkout session returned.");
+            } catch (err) {
+                console.error('Checkout error:', err);
+                alert('Something went wrong. Please check your internet connection and try again.');
             }
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = 'Write My Story <span class="arrow">→</span>';
