@@ -380,46 +380,138 @@
         // ===== INBUILT TEXT-TO-SPEECH (READ ALOUD) =====
         const speakBtn = document.getElementById('speakBtn');
         let isSpeaking = false;
+        let speechParagraphs = [];
+        let currentParaIdx = 0;
+        let activeUtterance = null;
+
+        function getBestNaturalVoice() {
+            if (!('speechSynthesis' in window)) return null;
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return null;
+
+            // 1. High priority: Neural / Natural / Enhanced British English (Edge Natural Libby/Ryan/Sonia, Apple Daniel Enhanced)
+            const naturalBritish = voices.find(v => 
+                (v.lang === 'en-GB' || v.lang === 'en_GB') && 
+                /natural|neural|online|enhanced|premium/i.test(v.name)
+            );
+            if (naturalBritish) return naturalBritish;
+
+            // 2. Google UK English
+            const googleUK = voices.find(v => /google\s+uk\s+english/i.test(v.name));
+            if (googleUK) return googleUK;
+
+            // 3. Standard British English (e.g. Microsoft George, Hazel, Apple Daniel)
+            const standardBritish = voices.find(v => (v.lang === 'en-GB' || v.lang === 'en_GB'));
+            if (standardBritish) return standardBritish;
+
+            // 4. Any Natural / Neural English voice (e.g. US Natural Guy/Jenny, Google US English)
+            const anyNaturalEnglish = voices.find(v => 
+                v.lang.startsWith('en') && 
+                /natural|neural|online|enhanced|premium/i.test(v.name)
+            );
+            if (anyNaturalEnglish) return anyNaturalEnglish;
+
+            // 5. Fallback to any English voice
+            return voices.find(v => v.lang.startsWith('en')) || null;
+        }
+
+        // Preload voices
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                getBestNaturalVoice();
+            };
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            isSpeaking = false;
+            speechParagraphs = [];
+            currentParaIdx = 0;
+            activeUtterance = null;
+            speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
+        }
+
+        function playNextSpeechChunk() {
+            if (!isSpeaking || currentParaIdx >= speechParagraphs.length) {
+                stopSpeaking();
+                return;
+            }
+
+            const text = speechParagraphs[currentParaIdx];
+            const voice = getBestNaturalVoice();
+            const utt = new SpeechSynthesisUtterance(text);
+
+            utt.rate = 0.91; // Warm, dignified audiobook narration pace
+            utt.pitch = 0.98; // Subtle lower resonance for warm character
+            if (voice) {
+                utt.voice = voice;
+                utt.lang = voice.lang;
+            } else {
+                utt.lang = 'en-GB';
+            }
+
+            utt.onend = () => {
+                currentParaIdx++;
+                if (currentParaIdx < speechParagraphs.length && isSpeaking) {
+                    // 350ms gentle breath pause between paragraphs
+                    setTimeout(playNextSpeechChunk, 350);
+                } else {
+                    stopSpeaking();
+                }
+            };
+
+            utt.onerror = (e) => {
+                console.warn('Speech chunk error:', e);
+                stopSpeaking();
+            };
+
+            activeUtterance = utt;
+            window.speechSynthesis.speak(utt);
+        }
 
         if ('speechSynthesis' in window) {
             speakBtn.addEventListener('click', () => {
                 if (isSpeaking) {
-                    window.speechSynthesis.cancel();
-                    isSpeaking = false;
-                    speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
+                    stopSpeaking();
                     showToast('Reading stopped');
                 } else {
-                    const storyText = document.getElementById('storyBody').innerText;
-                    const title = document.getElementById('chapterTitle').textContent || '';
-                    const fullText = `${title}. ${storyText}`;
+                    const title = (document.getElementById('chapterTitle').textContent || '').trim();
+                    const bodyElements = document.querySelectorAll('#storyBody p');
+                    const paragraphs = [];
+
+                    if (title) paragraphs.push(title);
+
+                    if (bodyElements && bodyElements.length > 0) {
+                        bodyElements.forEach(p => {
+                            const text = p.innerText.trim();
+                            if (text) paragraphs.push(text);
+                        });
+                    } else {
+                        const rawText = document.getElementById('storyBody').innerText;
+                        rawText.split(/\n\n+/).forEach(t => {
+                            const trimmed = t.trim();
+                            if (trimmed) paragraphs.push(trimmed);
+                        });
+                    }
+
+                    if (paragraphs.length === 0) {
+                        showToast('No text available to read.');
+                        return;
+                    }
 
                     window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(fullText);
-                    utterance.rate = 0.92; // warm storytelling pace
-                    utterance.pitch = 1.0;
-                    utterance.lang = navigator.language || 'en-GB';
+                    isSpeaking = true;
+                    speechParagraphs = paragraphs;
+                    currentParaIdx = 0;
+                    speakBtn.innerHTML = '<span class="icon">⏹️</span> Stop Listening';
 
-                    const voices = window.speechSynthesis.getVoices();
-                    const preferredVoice = voices.find(v => v.lang === 'en-GB' || v.lang.startsWith('en'));
-                    if (preferredVoice) utterance.voice = preferredVoice;
+                    const selectedVoice = getBestNaturalVoice();
+                    const voiceLabel = selectedVoice ? selectedVoice.name.replace(/online|natural/gi, '').trim() : 'System';
+                    showToast(`Narrating with ${voiceLabel}…`);
 
-                    utterance.onstart = () => {
-                        isSpeaking = true;
-                        speakBtn.innerHTML = '<span class="icon">⏹️</span> Stop Listening';
-                        showToast('Reading story aloud…');
-                    };
-
-                    utterance.onend = () => {
-                        isSpeaking = false;
-                        speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
-                    };
-
-                    utterance.onerror = () => {
-                        isSpeaking = false;
-                        speakBtn.innerHTML = '<span class="icon">🔊</span> Listen Aloud';
-                    };
-
-                    window.speechSynthesis.speak(utterance);
+                    playNextSpeechChunk();
                 }
             });
         } else {
