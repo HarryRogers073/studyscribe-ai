@@ -1756,3 +1756,269 @@ textarea.form-input {
     margin-bottom: 1.3em;
 }
 
+/* ===== MODAL STYLES (Email Story Dialog) ===== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(13, 27, 42, 0.72);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 18px;
+    padding: 36px 32px 30px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+    position: relative;
+    transform: translateY(16px);
+    transition: transform 0.25s ease;
+    text-align: center;
+}
+
+.modal-backdrop.show .modal-card {
+    transform: translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.15s;
+}
+
+.modal-close:hover {
+    color: var(--navy);
+}
+
+.modal-icon {
+    font-size: 2.4rem;
+    margin-bottom: 12px;
+}
+
+.modal-title {
+    font-family: var(--font-serif);
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+}
+
+.modal-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.modal-form-group {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+.modal-form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    background: var(--cream);
+    color: var(--text-dark);
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.18);
+}
+
+.modal-action-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 6px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.email-status-message {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.email-status-message.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.email-status-message.info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.email-status-message.error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.modal-divider {
+    position: relative;
+    text-align: center;
+    margin: 22px 0 16px;
+}
+
+.modal-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-light);
+}
+
+.modal-divider span {
+    position: relative;
+    background: #ffffff;
+    padding: 0 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.webmail-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.webmail-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.webmail-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--cream);
+    transform: translateY(-1px);
+}
+
+.modal-link-copy {
+    text-align: left;
+    margin-top: 14px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+}
+
+.modal-link-copy label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.link-copy-box {
+    display: flex;
+    gap: 8px;
+}
+
+.link-copy-box input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: var(--cream);
+    color: var(--text-muted);
+}
+
+.link-copy-box button {
+    padding: 9px 16px;
+    background: var(--navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.link-copy-box button:hover {
+    background: var(--gold);
+    color: var(--navy);
+}
+
+

@@ -10,11 +10,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+const { savePendingJob, getPendingJob, deletePendingJob, saveStory, getStory } = require('./services/store');
+const { sendStoryEmail } = require('./services/email');
+
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// In-memory store for pending generations (in production, use a database)
-const pendingJobs = new Map();
 
 // ===== CREATE CHECKOUT SESSION =====
 app.post('/create-checkout-session', async (req, res) => {
@@ -33,9 +33,9 @@ app.post('/create-checkout-session', async (req, res) => {
         story = story.slice(0, 8000).trim();
         email = (email || '').slice(0, 120).trim();
 
-        // Create a unique ID for this job
+        // Create a unique ID for this job and persist it
         const jobId = Math.random().toString(36).substring(7);
-        pendingJobs.set(jobId, { title, people, date, location, story, email });
+        savePendingJob(jobId, { title, people, date, location, story, email });
 
         // Build origin URL
         const origin = req.headers.origin
@@ -47,26 +47,42 @@ app.post('/create-checkout-session', async (req, res) => {
                 price_data: {
                     currency: 'gbp',
                     product_data: {
-                        name: 'MemoirMagic AI — Story Chapter',
-                        description: `Your memory "${(title || 'Untitled').substring(0, 50)}" transformed into a beautifully written story chapter.`,
+                        name: 'MemoirMagic AI — Story Chapter & PDF Keepsake',
+                        description: `Your memory "${(title || 'Life Memory').substring(0, 45)}" transformed into a beautifully written story chapter.`,
                     },
                     unit_amount: 299, // £2.99
                 },
                 quantity: 1,
             }],
             mode: 'payment',
+            payment_intent_data: {
+                description: `MemoirMagic Memoir: ${(title || 'Life Memory').substring(0, 45)}`,
+                metadata: {
+                    jobId,
+                    title: (title || '').substring(0, 60),
+                    email: (email || '').substring(0, 60)
+                }
+            },
+            metadata: {
+                jobId,
+                title: (title || '').substring(0, 60),
+                email: (email || '').substring(0, 60)
+            },
             managed_payments: { enabled: false },
             success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&job_id=${jobId}`,
-            cancel_url: `${origin}/`,
+            cancel_url: `${origin}/#write`,
         };
 
         if (email && email.includes('@')) {
             sessionPayload.customer_email = email;
+            if (sessionPayload.payment_intent_data) {
+                sessionPayload.payment_intent_data.receipt_email = email;
+            }
         }
 
         const session = await stripe.checkout.sessions.create(sessionPayload);
 
-        res.json({ id: session.id });
+        res.json({ id: session.id, url: session.url });
     } catch (error) {
         console.error('Stripe error:', error);
         res.status(500).json({ error: `Payment Error: ${error.message}` });
@@ -77,7 +93,22 @@ app.post('/create-checkout-session', async (req, res) => {
 app.post('/generate-story', async (req, res) => {
     try {
         const { jobId } = req.body;
-        const memoryData = pendingJobs.get(jobId);
+
+        // If this story was already generated, retrieve it immediately
+        const existingStory = getStory(jobId);
+        if (existingStory) {
+            return res.json({
+                story: existingStory.story,
+                title: existingStory.title,
+                date: existingStory.date,
+                location: existingStory.location,
+                email: existingStory.email,
+                storyId: existingStory.id,
+                storyUrl: existingStory.storyUrl
+            });
+        }
+
+        const memoryData = getPendingJob(jobId);
 
         if (!memoryData) {
             return res.status(400).json({ error: 'Session expired or already processed. Please try again.' });
@@ -160,8 +191,41 @@ Now write this memory as an evocative, beautifully finished memoir chapter:`;
             throw lastError || new Error('All AI models failed. Please try again later.');
         }
 
-        // Clear the job from memory
-        pendingJobs.delete(jobId);
+        // Build permanent story ID and URL
+        const storyId = `memoir_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        const origin = req.headers.origin
+            || req.headers.referer?.slice(0, -1)
+            || `https://${req.headers['x-forwarded-host'] || req.get('host')}`;
+        const storyUrl = `${origin}/success.html?story_id=${storyId}`;
+
+        // Save permanently to storage
+        saveStory({
+            id: storyId,
+            jobId,
+            title: title || 'A Memory',
+            story: text,
+            date: date || '',
+            location: location || '',
+            people: people || '',
+            email: email || '',
+            storyUrl
+        });
+
+        // Clear the pending job
+        deletePendingJob(jobId);
+
+        // If email was provided, automatically send receipt & story keepsake in background
+        if (email && email.includes('@')) {
+            sendStoryEmail({
+                to: email,
+                title: title || 'A Memory',
+                story: text,
+                date: date || '',
+                location: location || '',
+                storyUrl,
+                id: storyId
+            }).catch(err => console.warn('[Background Email]', err.message));
+        }
 
         // Return structured response for the frontend
         res.json({
@@ -169,11 +233,62 @@ Now write this memory as an evocative, beautifully finished memoir chapter:`;
             title: title || 'A Memory',
             date: date || '',
             location: location || '',
-            email: email || ''
+            email: email || '',
+            storyId,
+            storyUrl
         });
     } catch (error) {
         console.error('Gemini error:', error);
         res.status(500).json({ error: `AI Error: ${error.message}` });
+    }
+});
+
+// ===== GET STORY BY PERMANENT ID =====
+app.get('/api/story/:id', (req, res) => {
+    try {
+        const story = getStory(req.params.id);
+        if (!story) {
+            return res.status(404).json({ error: 'Story not found or link has expired.' });
+        }
+        res.json(story);
+    } catch (err) {
+        console.error('Error fetching story:', err);
+        res.status(500).json({ error: 'Could not retrieve story.' });
+    }
+});
+
+// ===== EMAIL STORY TO USER / RECIPIENT =====
+app.post('/api/send-email', async (req, res) => {
+    try {
+        const { storyId, email } = req.body;
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ error: 'Please enter a valid email address.' });
+        }
+
+        const story = getStory(storyId);
+        if (!story) {
+            return res.status(404).json({ error: 'Story not found.' });
+        }
+
+        const origin = req.headers.origin
+            || req.headers.referer?.slice(0, -1)
+            || `https://${req.headers['x-forwarded-host'] || req.get('host')}`;
+        const storyUrl = story.storyUrl || `${origin}/success.html?story_id=${story.id}`;
+
+        const result = await sendStoryEmail({
+            to: email.trim(),
+            title: story.title,
+            story: story.story,
+            date: story.date,
+            location: story.location,
+            storyUrl,
+            id: story.id
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error('Send email error:', error);
+        res.status(500).json({ error: 'Failed to dispatch email. Please try again.' });
     }
 });
 

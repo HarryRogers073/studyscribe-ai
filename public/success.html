@@ -166,6 +166,54 @@
         </div>
     </div>
 
+    <!-- ===== EMAIL STORY MODAL ===== -->
+    <div id="emailModal" class="modal-backdrop">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="emailModalTitle">
+            <button type="button" class="modal-close" id="closeEmailModalBtn" aria-label="Close modal">&times;</button>
+            <div class="modal-icon">✉️</div>
+            <h3 class="modal-title" id="emailModalTitle">Email Your Story & Keepsake Link</h3>
+            <p class="modal-subtitle">Receive your full story chapter, purchase confirmation, and permanent PDF download link.</p>
+
+            <form id="emailStoryForm">
+                <div class="modal-form-group">
+                    <label for="recipientEmailInput">Send to this email:</label>
+                    <input type="email" id="recipientEmailInput" class="modal-input" placeholder="e.g. name@example.com" required>
+                </div>
+                <button type="submit" id="sendEmailSubmitBtn" class="btn-primary modal-action-btn">
+                    <span class="icon">📨</span> Send Story & Receipt
+                </button>
+                <div id="emailStatusMsg" class="email-status-message" style="display: none;"></div>
+            </form>
+
+            <div class="modal-divider">
+                <span>Or open in your email provider</span>
+            </div>
+
+            <div class="webmail-buttons">
+                <a href="#" id="openGmailBtn" target="_blank" class="webmail-btn" rel="noopener">
+                    <span class="webmail-icon">🔴</span> Gmail
+                </a>
+                <a href="#" id="openOutlookBtn" target="_blank" class="webmail-btn" rel="noopener">
+                    <span class="webmail-icon">🔵</span> Outlook
+                </a>
+                <a href="#" id="openYahooBtn" target="_blank" class="webmail-btn" rel="noopener">
+                    <span class="webmail-icon">🟣</span> Yahoo
+                </a>
+                <a href="#" id="openMailtoBtn" class="webmail-btn">
+                    <span class="webmail-icon">✉️</span> Mail App
+                </a>
+            </div>
+
+            <div class="modal-link-copy">
+                <label for="permanentLinkInput">Permanent Keepsake Link</label>
+                <div class="link-copy-box">
+                    <input type="text" id="permanentLinkInput" readonly>
+                    <button type="button" id="copyLinkBtn">Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
 
@@ -242,9 +290,35 @@
             const readingMins = Math.max(1, Math.ceil(words / 200));
             document.getElementById('readingMeta').textContent = `📖 ~${readingMins} min read · ${words} words`;
 
+            // Setup permanent keepsake link
+            const origin = window.location.origin;
+            const permUrl = data.storyUrl || (data.storyId ? `${origin}/success.html?story_id=${data.storyId}` : window.location.href);
+            storyData.storyUrl = permUrl;
+            storyData.storyId = data.storyId || '';
+
+            const linkInput = document.getElementById('permanentLinkInput');
+            if (linkInput) linkInput.value = permUrl;
+
+            // Update browser URL silently so refreshing or copying the address bar preserves the story
+            if (data.storyId && window.history && window.history.replaceState) {
+                const currentSearch = new URLSearchParams(window.location.search);
+                currentSearch.set('story_id', data.storyId);
+                currentSearch.delete('job_id');
+                window.history.replaceState(null, '', `?${currentSearch.toString()}`);
+            }
+
             // Show the book
             loader.style.display = 'none';
             bookContainer.style.display = 'block';
+
+            // Auto-trigger PDF download if requested via query param
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('download') === 'pdf' || urlParams.get('autodownload') === '1') {
+                setTimeout(() => {
+                    const dlBtn = document.getElementById('downloadPdfBtn');
+                    if (dlBtn) dlBtn.click();
+                }, 800);
+            }
         }
 
         // ===== FONT SIZE ADJUSTMENTS =====
@@ -520,70 +594,229 @@
             });
         }
 
-        document.getElementById('emailBtn').addEventListener('click', () => {
-            const storyText = document.getElementById('storyBody').innerText;
-            const title = document.getElementById('chapterTitle').textContent || 'My Story';
-            const subject = encodeURIComponent(`${title} — My Story (MemoirMagic)`);
-            const body = encodeURIComponent(`${title}\n\n${storyText}\n\n— Preserved with MemoirMagic`);
+        // ===== EMAIL STORY MODAL & HANDLERS =====
+        const emailModal = document.getElementById('emailModal');
+        const emailStoryForm = document.getElementById('emailStoryForm');
+        const recipientEmailInput = document.getElementById('recipientEmailInput');
+        const emailStatusMsg = document.getElementById('emailStatusMsg');
+        const sendEmailSubmitBtn = document.getElementById('sendEmailSubmitBtn');
 
-            const to = (storyData && storyData.email) ? encodeURIComponent(storyData.email) : '';
-            window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-            showToast(to ? `Opening email to ${decodeURIComponent(to)}…` : 'Opening email client…');
+        function openEmailModal() {
+            if (!storyData) {
+                showToast('Please wait for the story to finish loading.');
+                return;
+            }
+
+            // Prefill recipient email if available
+            if (storyData.email) {
+                recipientEmailInput.value = storyData.email;
+            }
+
+            emailStatusMsg.style.display = 'none';
+            emailStatusMsg.className = 'email-status-message';
+            emailStatusMsg.textContent = '';
+            sendEmailSubmitBtn.disabled = false;
+            sendEmailSubmitBtn.innerHTML = '<span class="icon">📨</span> Send Story & Receipt';
+
+            updateWebmailLinks();
+
+            emailModal.classList.add('show');
+            setTimeout(() => recipientEmailInput.focus(), 150);
+        }
+
+        function closeEmailModal() {
+            emailModal.classList.remove('show');
+        }
+
+        function updateWebmailLinks() {
+            const storyText = (document.getElementById('storyBody').innerText || '').trim();
+            const title = (document.getElementById('chapterTitle').textContent || 'My Story').trim();
+            const permUrl = (storyData && storyData.storyUrl) ? storyData.storyUrl : window.location.href;
+            const toEmail = recipientEmailInput.value.trim();
+
+            const subject = `${title} — My MemoirMagic Story Chapter`;
+            const body = `${title}\n\n${storyText}\n\n📖 View, Listen & Download PDF Keepsake:\n${permUrl}\n\n— Preserved with MemoirMagic (memoirmagic.co.uk)`;
+
+            const encTo = encodeURIComponent(toEmail);
+            const encSubj = encodeURIComponent(subject);
+            const encBody = encodeURIComponent(body);
+
+            // Gmail web compose
+            document.getElementById('openGmailBtn').href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encTo}&su=${encSubj}&body=${encBody}`;
+
+            // Outlook / Hotmail web compose
+            document.getElementById('openOutlookBtn').href = `https://outlook.live.com/mail/0/deeplink/compose?to=${encTo}&subject=${encSubj}&body=${encBody}`;
+
+            // Yahoo Mail web compose
+            document.getElementById('openYahooBtn').href = `https://compose.mail.yahoo.com/?to=${encTo}&subj=${encSubj}&body=${encBody}`;
+
+            // Default OS email app
+            document.getElementById('openMailtoBtn').href = `mailto:${toEmail}?subject=${encSubj}&body=${encBody}`;
+        }
+
+        recipientEmailInput.addEventListener('input', updateWebmailLinks);
+
+        document.getElementById('emailBtn').addEventListener('click', openEmailModal);
+        document.getElementById('closeEmailModalBtn').addEventListener('click', closeEmailModal);
+
+        emailModal.addEventListener('click', (e) => {
+            if (e.target === emailModal) closeEmailModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && emailModal.classList.contains('show')) {
+                closeEmailModal();
+            }
+        });
+
+        // Copy Permanent Link button in modal
+        document.getElementById('copyLinkBtn').addEventListener('click', () => {
+            const linkInput = document.getElementById('permanentLinkInput');
+            linkInput.select();
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                showToast('Keepsake link copied to clipboard!');
+            }).catch(() => {
+                document.execCommand('copy');
+                showToast('Keepsake link copied!');
+            });
+        });
+
+        // Form Submit: Send Email via Server
+        emailStoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = recipientEmailInput.value.trim();
+
+            if (!email || !email.includes('@')) {
+                emailStatusMsg.className = 'email-status-message error';
+                emailStatusMsg.textContent = 'Please enter a valid email address.';
+                emailStatusMsg.style.display = 'block';
+                return;
+            }
+
+            sendEmailSubmitBtn.disabled = true;
+            sendEmailSubmitBtn.innerHTML = '<span class="icon">⏳</span> Sending to your inbox…';
+            emailStatusMsg.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        storyId: storyData.storyId,
+                        email: email
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    emailStatusMsg.className = 'email-status-message error';
+                    emailStatusMsg.textContent = result.error;
+                    emailStatusMsg.style.display = 'block';
+                } else if (result.fallbackNeeded) {
+                    emailStatusMsg.className = 'email-status-message info';
+                    emailStatusMsg.innerHTML = `✓ Link ready! Click <strong>Gmail</strong>, <strong>Outlook</strong>, or <strong>Mail App</strong> below to send directly to <strong>${email}</strong>.`;
+                    emailStatusMsg.style.display = 'block';
+                    showToast('Opening email options…');
+                } else {
+                    emailStatusMsg.className = 'email-status-message success';
+                    emailStatusMsg.innerHTML = `✓ Story sent to <strong>${email}</strong>! Check your inbox (and spam/junk folder) for your receipt & keepsake link.`;
+                    emailStatusMsg.style.display = 'block';
+                    showToast('Email sent successfully!');
+                }
+            } catch (err) {
+                console.error('Email error:', err);
+                emailStatusMsg.className = 'email-status-message info';
+                emailStatusMsg.innerHTML = `Use one of the one-click buttons below to dispatch to <strong>${email}</strong>.`;
+                emailStatusMsg.style.display = 'block';
+            } finally {
+                sendEmailSubmitBtn.disabled = false;
+                sendEmailSubmitBtn.innerHTML = '<span class="icon">📨</span> Send Story & Receipt';
+            }
         });
 
         document.getElementById('shareBtn').addEventListener('click', () => {
             const storyText = document.getElementById('storyBody').innerText;
             const title = document.getElementById('chapterTitle').textContent;
+            const permUrl = (storyData && storyData.storyUrl) ? storyData.storyUrl : window.location.href;
 
             if (navigator.share) {
                 navigator.share({
                     title: `${title} — MemoirMagic`,
                     text: storyText.substring(0, 500) + '…',
-                    url: window.location.href
+                    url: permUrl
                 }).catch(() => {});
             } else {
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    showToast('Link copied — paste it in an email or message!');
+                navigator.clipboard.writeText(permUrl).then(() => {
+                    showToast('Story keepsake link copied to clipboard!');
                 });
             }
         });
 
-        // ===== MAIN LOGIC =====
+        // ===== MAIN LOGIC: LOAD OR GENERATE STORY =====
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
+            const storyId = urlParams.get('story_id');
             const jobId = urlParams.get('job_id');
             const sessionId = urlParams.get('session_id');
 
-            if (!jobId || !sessionId) {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('errorContainer').style.display = 'block';
-                document.getElementById('errorMessage').textContent = 'Invalid session. Please start over.';
-                return;
-            }
+            // 1. If permanent story_id exists in URL, load directly from permanent storage
+            if (storyId) {
+                try {
+                    const response = await fetch(`/api/story/${encodeURIComponent(storyId)}`);
+                    const data = await response.json();
 
-            try {
-                const response = await fetch('/generate-story', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jobId })
-                });
+                    if (data.error || !data.story) {
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('errorContainer').style.display = 'block';
+                        document.getElementById('errorMessage').textContent = data.error || 'Story not found. Please check your link or start a new story.';
+                        return;
+                    }
 
-                const data = await response.json();
-
-                if (data.error) {
+                    renderStory(data);
+                    return;
+                } catch (err) {
+                    console.error('Error fetching story by ID:', err);
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('errorContainer').style.display = 'block';
-                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').textContent = 'Could not load your story. Please check your internet connection.';
                     return;
                 }
-
-                renderStory(data);
-            } catch (error) {
-                console.error('Generation error:', error);
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('errorContainer').style.display = 'block';
-                document.getElementById('errorMessage').textContent = 'Failed to connect. Please check your internet and try again.';
             }
+
+            // 2. If fresh from checkout with job_id
+            if (jobId) {
+                try {
+                    const response = await fetch('/generate-story', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jobId })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('errorContainer').style.display = 'block';
+                        document.getElementById('errorMessage').textContent = data.error;
+                        return;
+                    }
+
+                    renderStory(data);
+                    return;
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('errorContainer').style.display = 'block';
+                    document.getElementById('errorMessage').textContent = 'Failed to generate story. Please try refreshing.';
+                    return;
+                }
+            }
+
+            // 3. No parameters provided
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('errorContainer').style.display = 'block';
+            document.getElementById('errorMessage').textContent = 'No active story session found. Please tell us a memory to begin.';
         };
     </script>
 </body>
