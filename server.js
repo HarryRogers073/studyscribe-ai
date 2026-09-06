@@ -62,9 +62,6 @@ app.post('/generate-guide', async (req, res) => {
             return res.status(400).json({ error: 'Job not found or already processed' });
         }
 
-        // Call Gemini API
-        const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
-        const model = genAI.getGenerativeModel({ model: modelName });
         const prompt = `You are StudyScribe AI, an expert tutor. Take the following messy lecture notes and transform them into a beautifully structured, premium study guide. Include:
 1. Executive Summary
 2. Key Concepts (Bullet points)
@@ -73,9 +70,34 @@ app.post('/generate-guide', async (req, res) => {
 Here are the notes:
 ${notes}`;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const candidateModels = [
+            process.env.GEMINI_MODEL,
+            'gemini-1.5-flash',
+            'gemini-2.0-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-1.5-pro'
+        ].filter(Boolean);
+
+        let text = null;
+        let lastError = null;
+
+        for (const mName of candidateModels) {
+            try {
+                console.log(`Attempting generation with model: ${mName}`);
+                const model = genAI.getGenerativeModel({ model: mName });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                text = response.text();
+                if (text) break;
+            } catch (err) {
+                console.warn(`Model ${mName} failed:`, err.message);
+                lastError = err;
+            }
+        }
+
+        if (!text) {
+            throw lastError || new Error('All model attempts failed');
+        }
 
         // Clear the job from memory
         pendingJobs.delete(jobId);
