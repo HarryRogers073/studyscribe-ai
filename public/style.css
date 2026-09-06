@@ -2051,3 +2051,14 @@ textarea.form-input {
     }
 }
 
+
+/* ===== HTML2PDF EXPORT FIXES ===== */
+.pdf-export-mode .story-body p:first-of-type::first-letter {
+    font-size: inherit !important;
+    color: inherit !important;
+    float: none !important;
+    font-weight: inherit !important;
+    font-family: inherit !important;
+    text-shadow: none !important;
+}
+

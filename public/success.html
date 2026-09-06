@@ -386,7 +386,7 @@
                 clone.style.outline = 'none';
                 clone.style.borderRadius = '0';
                 clone.style.minHeight = 'auto';
-                clone.style.padding = '0 65px'; // Horizontal padding only; top/bottom is handled by html2pdf margin
+                clone.style.padding = '55px 65px'; // Full padding to ensure page 1 top and last page bottom are padded
                 clone.style.width = '100%';
                 clone.style.backgroundColor = bgColor;
 
@@ -394,7 +394,7 @@
                 document.body.appendChild(printContainer);
 
                 const opt = {
-                    margin:       [15, 0, 15, 0], // 15mm top/bottom margin for clean page breaks
+                    margin:       0, // 0 margin ensures full-bleed background (no white bits!)
                     filename:     `${filename}_Memoir.pdf`,
                     image:        { type: 'jpeg', quality: 1.0 },
                     html2canvas:  {
@@ -412,7 +412,6 @@
                     },
                     pagebreak:    {
                         mode: ['css', 'legacy']
-                        // Removed 'avoid: p' to allow natural paragraph breaking across pages without massive empty gaps
                     }
                 };
 
