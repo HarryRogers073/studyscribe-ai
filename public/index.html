@@ -199,20 +199,22 @@
     <section class="section examples-section" id="example-story">
         <div class="container">
             <div class="section-label fade-up">Real Transformation</div>
-            <h2 class="section-title fade-up">From Messy Notes to a Memoir Chapter</h2>
-            <p class="section-subtitle fade-up">You don't need to be a writer. See how a few scattered recollections become a beautifully told, publishable story.</p>
+            <h2 class="section-title fade-up">From Messy Notes to a Heartwarming Memoir</h2>
+            <p class="section-subtitle fade-up">You don't need to be a writer. See how simple, scattered memories become deeply moving, publishable stories you'll treasure forever.</p>
+
+            <div class="example-tabs fade-up">
+                <button type="button" class="example-tab-btn active" data-story="sunday">🍲 Sunday Roasts at Nana Rose’s (1968)</button>
+                <button type="button" class="example-tab-btn" data-story="dance">💃 The Night I Met Jack at the Dance (1962)</button>
+            </div>
 
             <div class="example-comparison-card fade-up">
                 <div class="example-column">
                     <div class="example-col-header">
                         <span class="badge-tag input-tag">What you write</span>
-                        <h4>Rough, scattered notes</h4>
+                        <h4 id="exampleNotesHeader">Rough, scattered notes</h4>
                     </div>
-                    <div class="example-notes-box">
-                        <p><strong>Title:</strong> The Summer We Drove to Cornwall (1985)</p>
-                        <p><strong>Who:</strong> Mum, Dad, my sister Claire, dog Barnaby</p>
-                        <p><strong>Where:</strong> Perranporth, staying in a damp rented cottage</p>
-                        <p><strong>What happened:</strong> Packed the blue Ford Cortina so full the boot barely shut. Dad refused the motorway, took back roads. Radiator boiled near Exeter, sat on grass verge eating soggy cheese sandwiches wrapped in foil. Arrived late, cottage smelled of sea salt. Woke up to seagulls. Best summer of our lives.</p>
+                    <div class="example-notes-box" id="exampleNotesBox">
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
@@ -223,16 +225,10 @@
                 <div class="example-column">
                     <div class="example-col-header">
                         <span class="badge-tag output-tag">What MemoirMagic writes</span>
-                        <h4>A published-quality memoir chapter</h4>
+                        <h4 id="exampleOutputHeader">A publishable memoir chapter</h4>
                     </div>
-                    <div class="example-book-preview">
-                        <div class="preview-mini-header">CHAPTER ONE · CORNWALL, 1985</div>
-                        <p class="preview-text">
-                            <span class="preview-dropcap">T</span>he blue Ford Cortina was weighed down to its axles, the boot tied shut with hairy garden twine. Dad was at the wheel with that quiet, stubborn determination of his, refusing point-blank to touch the motorway because ‘the old coaching roads had more character.’ Halfway up Haldon Hill near Exeter, the radiator gave up with an indignant hiss of steam, stranding us on a patch of sun-baked grass while Mum distributed cheese and pickle sandwiches wrapped in warm foil.
-                        </p>
-                        <p class="preview-text">
-                            Yet none of us minded. By seven that evening, the road curved over the headland and there was the Atlantic — grey, vast, and welcoming. The cottage smelled of sea-salt and damp wool, but waking up the next morning to the screech of gulls outside our window, I knew that no five-star hotel could ever match it.
-                        </p>
+                    <div class="example-book-preview" id="exampleBookPreview">
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -531,6 +527,71 @@
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = 'Write My Story <span class="arrow">→</span>';
         });
+
+        // ===== BEFORE & AFTER SHOWCASE STORIES =====
+        const showcaseStories = {
+            sunday: {
+                notes: `
+                    <p><strong>Title:</strong> Sunday Roasts at Nana Rose’s</p>
+                    <p><strong>Who:</strong> Nana Rose, Grandad Arthur, Uncle George, little sister Betty, and Buster the terrier</p>
+                    <p><strong>Where:</strong> 14 Laburnum Grove, Leeds (October 1968)</p>
+                    <p><strong>What happened:</strong> Sunday dinner at 1 o’clock sharp. Nana in her blue floral apron, red-faced from the oven heat. Grandad in his knitted cardigan listening to the wireless, smoking his St Bruno pipe. Fourteen of us squeezed around the table on chairs brought in from the front room. Uncle George late from the allotment with fresh carrots. Grandad slipping roast beef trimmings to Buster under the oilcloth. Giant Yorkshire puddings swimming in rich onion gravy. Grandfather clock ticking, warm malt loaf by the coal fire after. Didn't realize back then that those noisy afternoons were the happiest days of our lives.</p>
+                `,
+                preview: `
+                    <div class="preview-mini-header">CHAPTER ONE · 14 LABURNUM GROVE, 1968</div>
+                    <p class="preview-text">
+                        <span class="preview-dropcap">I</span>f you close your eyes, you can still smell it: roasting beef, beeswax floor polish, and the sweet, woody curl of Grandad Arthur’s pipe tobacco drifting through the parlor. Every Sunday at one o’clock sharp, number 14 Laburnum Grove became the beating heart of our world. Nana Rose ruled the kitchen in her blue floral apron, her cheeks flushed scarlet as she lifted towering Yorkshire puddings the size of tea plates out of their spitting cast-iron tins.
+                    </p>
+                    <p class="preview-text">
+                        We crammed fourteen of us around an extended dining table, perching on mismatched wooden chairs carried in from the front room. Uncle George would tumble through the scullery door just as grace was said, boots thick with allotment mud, proudly dumping a bunch of newly pulled carrots on the draining board. Underneath the oilcloth tablecloth, Grandad Arthur would catch my eye with a quiet wink, sliding a crispy sliver of roast beef down to Buster, who sat trembling with devotion at his slippered feet.
+                    </p>
+                    <p class="preview-text">
+                        Later, with the fire humming in the hearth and the grandfather clock chiming four, Nana would bring out warm malt loaf sliced thick with country butter. We took those afternoons for granted, believing everyone in that room would live forever. It took growing old myself to understand that we weren’t just sharing Sunday dinner — we were being wrapped in love that would carry us through a lifetime.
+                    </p>
+                `
+            },
+            dance: {
+                notes: `
+                    <p><strong>Title:</strong> The Night I Met Jack at the Dance</p>
+                    <p><strong>Who:</strong> Me (Dorothy), best friend Peggy, Jack Morrison</p>
+                    <p><strong>Where:</strong> The Corn Exchange ballroom, Norwich (November 1962)</p>
+                    <p><strong>What happened:</strong> Poured with rain outside, Peggy and I paid half a crown at the door. Wore my bottle-green flared dress Mum made on her hand-cranked Singer machine. The band played 'Moonlight Serenade'. Jack stood by the pillar with his friend Ronnie, wearing a navy blazer with Brylcreem in his hair. He walked across the sprung maple floor and politely asked, 'Would you care to dance, miss?' Stepped on my foot twice during the foxtrot, apologized three times, bought me an orange squash. Walked me to the bus stop in the rain and gave me his wool scarf. We were married for fifty-two years.</p>
+                `,
+                preview: `
+                    <div class="preview-mini-header">CHAPTER TWO · THE CORN EXCHANGE, 1962</div>
+                    <p class="preview-text">
+                        <span class="preview-dropcap">T</span>he rain was drumming furiously against the high arched glass of the Corn Exchange, but inside, the polished maple dance floor was glowing warm amber beneath the turning mirror ball. Peggy and I had spent two breathless hours getting ready, giggling in front of the bedroom mirror while the scent of hair lacquer and lavender soap filled the air. I was nineteen, wearing the bottle-green dress Mum had spent three late evenings finishing on her hand-cranked Singer sewing machine.
+                    </p>
+                    <p class="preview-text">
+                        Across the hall by the pillars stood Jack Morrison. He was tall, wonderfully shy, with hair neatened with Brylcreem and a navy wool blazer that was just a touch too broad in the shoulders. When he crossed the floor, paused, and politely asked, ‘Would you care to dance, miss?’, my heart fluttered against my ribs. He stepped on the hem of my dress twice during the foxtrot, blushing to the roots of his hair and apologizing after every turn, before shyly buying me an orange squash by the cloakroom.
+                    </p>
+                    <p class="preview-text">
+                        When the last waltz finished and he walked me to the bus stop in the drizzle, unfastening his woolen scarf to wrap it around my neck against the chill, I knew my heart was spoken for. Fifty-two years of marriage, three children, and seven grandchildren followed — but whenever I hear that melody, he will always be the boy in the navy blazer.
+                    </p>
+                `
+            }
+        };
+
+        function setStoryShowcase(key) {
+            const data = showcaseStories[key];
+            if (!data) return;
+            const notesBox = document.getElementById('exampleNotesBox');
+            const previewBox = document.getElementById('exampleBookPreview');
+            if (notesBox && previewBox) {
+                notesBox.innerHTML = data.notes;
+                previewBox.innerHTML = data.preview;
+            }
+            document.querySelectorAll('.example-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.story === key);
+            });
+        }
+
+        document.querySelectorAll('.example-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => setStoryShowcase(btn.dataset.story));
+        });
+
+        // Initialize showcase on load
+        setStoryShowcase('sunday');
 
         // ===== STICKY NAV =====
         const topBar = document.getElementById('topBar');
