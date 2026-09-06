@@ -386,7 +386,7 @@
                 clone.style.outline = 'none';
                 clone.style.borderRadius = '0';
                 clone.style.minHeight = 'auto';
-                clone.style.padding = '55px 65px';
+                clone.style.padding = '0 65px'; // Horizontal padding only; top/bottom is handled by html2pdf margin
                 clone.style.width = '100%';
                 clone.style.backgroundColor = bgColor;
 
@@ -394,9 +394,9 @@
                 document.body.appendChild(printContainer);
 
                 const opt = {
-                    margin:       0, // 0 margin ensures full-bleed theme background without card borders
+                    margin:       [15, 0, 15, 0], // 15mm top/bottom margin for clean page breaks
                     filename:     `${filename}_Memoir.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
+                    image:        { type: 'jpeg', quality: 1.0 },
                     html2canvas:  {
                         scale: 2,
                         useCORS: true,
@@ -411,8 +411,8 @@
                         orientation: 'portrait'
                     },
                     pagebreak:    {
-                        mode: ['css', 'legacy'],
-                        avoid: ['p', 'h1', 'h2', 'h3', '.chapter-header', 'blockquote']
+                        mode: ['css', 'legacy']
+                        // Removed 'avoid: p' to allow natural paragraph breaking across pages without massive empty gaps
                     }
                 };
 

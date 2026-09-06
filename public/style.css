@@ -2022,3 +2022,32 @@ textarea.form-input {
 }
 
 
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    body {
+        background: none !important;
+        background-color: white !important;
+    }
+    .top-bar, .success-header, .theme-picker, .action-bar, .write-another, .footer, .toast, .modal-backdrop {
+        display: none !important;
+    }
+    .success-page, .container-narrow {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .book-page {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        min-height: 0 !important;
+    }
+    @page {
+        margin: 20mm;
+    }
+}
+
