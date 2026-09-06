@@ -63,7 +63,8 @@ app.post('/generate-guide', async (req, res) => {
         }
 
         // Call Gemini API
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+        const model = genAI.getGenerativeModel({ model: modelName });
         const prompt = `You are StudyScribe AI, an expert tutor. Take the following messy lecture notes and transform them into a beautifully structured, premium study guide. Include:
 1. Executive Summary
 2. Key Concepts (Bullet points)
