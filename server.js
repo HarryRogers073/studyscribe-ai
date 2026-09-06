@@ -32,11 +32,7 @@ app.post('/create-checkout-session', async (req, res) => {
             line_items: [{
                 price_data: {
                     currency: 'gbp',
-                    product_data: {
-                        name: 'StudyScribe AI - Premium Study Guide',
-                        description: 'Instant AI conversion of your notes into a perfect study guide.',
-                        tax_code: 'txcd_10000000'
-                    },
+                    product: 'prod_VD8RKQ0EGbaOm0',
                     unit_amount: 199, // £1.99
                 },
                 quantity: 1,
