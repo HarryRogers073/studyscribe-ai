@@ -187,34 +187,70 @@ async function sendStoryEmail({ to, title, story, date, location, storyUrl, id }
         email: to
     });
 
+    const fromAddress = process.env.FROM_EMAIL || process.env.SMTP_USER || 'support@memoirmagic.co.uk';
+    const emailSubject = `Your Memoir Chapter is Ready: "${title || 'My Story'}" (Receipt & PDF Link)`;
+
+    // Priority 1: Direct Resend API (Most reliable on cloud platforms like Render)
+    const resendKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('re_') ? process.env.SMTP_PASS : null);
+    if (resendKey) {
+        try {
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${resendKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: `MemoirMagic <${fromAddress}>`,
+                    to: [to],
+                    reply_to: fromAddress,
+                    subject: emailSubject,
+                    text: plainText,
+                    html: html
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.id) {
+                console.log(`[Email Service] Story email successfully sent via Resend API to ${to}. MessageId: ${data.id}`);
+                return { success: true, emailSent: true, messageId: data.id, storyUrl };
+            } else {
+                console.warn(`[Email Service] Resend API returned non-OK:`, data);
+            }
+        } catch (apiErr) {
+            console.error(`[Email Service] Resend API exception:`, apiErr.message);
+        }
+    }
+
+    // Priority 2: SMTP / Nodemailer
     const transporter = createTransporter();
 
     if (!transporter) {
-        console.log(`[Email Service Notice] SMTP not configured in environment. Story email prepared for: ${to}`);
+        console.log(`[Email Service Notice] Email credentials not configured in environment. Story email prepared for: ${to}`);
         console.log(`[Story Link]: ${storyUrl}`);
         return {
             success: true,
             emailSent: false,
             fallbackNeeded: true,
             storyUrl,
-            message: 'Email service pending SMTP credentials. Permanent link is ready.'
+            message: 'Email service pending credentials. Permanent link is ready.'
         };
     }
 
     try {
-        const fromAddress = process.env.FROM_EMAIL || process.env.SMTP_USER || 'support@memoirmagic.co.uk';
         const info = await transporter.sendMail({
             from: `"MemoirMagic" <${fromAddress}>`,
             to,
-            subject: `Your Memoir Chapter is Ready: "${title || 'My Story'}" (Receipt & PDF Link)`,
+            replyTo: fromAddress,
+            subject: emailSubject,
             text: plainText,
             html: html
         });
 
-        console.log(`[Email Service] Story email successfully dispatched to ${to}. MessageId: ${info.messageId}`);
+        console.log(`[Email Service] Story email successfully dispatched via SMTP to ${to}. MessageId: ${info.messageId}`);
         return { success: true, emailSent: true, messageId: info.messageId, storyUrl };
     } catch (error) {
-        console.error(`[Email Service Error] Failed sending email to ${to}:`, error.message);
+        console.error(`[Email Service Error] Failed sending email via SMTP to ${to}:`, error.message);
         return { success: false, error: error.message, storyUrl };
     }
 }
